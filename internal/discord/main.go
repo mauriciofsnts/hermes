@@ -8,6 +8,8 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/mauriciofsnts/hermes/internal/config"
+	"github.com/mauriciofsnts/hermes/internal/discord/commands"
+	"github.com/mauriciofsnts/hermes/internal/discord/commands/categories/utils"
 )
 
 func Start() error {
@@ -25,6 +27,8 @@ func Start() error {
 	if err != nil {
 		return err
 	}
+
+	commands.RegisterCommand(utils.Ping)
 
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
