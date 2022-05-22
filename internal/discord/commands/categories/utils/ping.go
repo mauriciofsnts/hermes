@@ -3,6 +3,7 @@ package utils
 import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/mauriciofsnts/hermes/internal/discord/commands"
+	"github.com/mauriciofsnts/hermes/internal/utils/reply"
 )
 
 var Ping = &commands.SlashCommand{
@@ -11,11 +12,8 @@ var Ping = &commands.SlashCommand{
 		Description: "Ping the bot",
 	},
 	Handler: func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "Pong!",
-			},
+		reply.Ok(s, i, &discordgo.MessageEmbed{
+			Description: "Pong!",
 		})
 	},
 }
