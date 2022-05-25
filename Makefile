@@ -1,5 +1,4 @@
-
-BINARY_NAME = wombot
+BINARY_NAME = hermes
 TEST_COMMAND = go test
 
 .PHONY: build
