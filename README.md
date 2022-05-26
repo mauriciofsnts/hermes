@@ -1,3 +1,3 @@
 # the fastest bot
 
-my first disorder bot made in golang
+my first discord bot made in golang
