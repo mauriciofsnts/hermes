@@ -7,8 +7,6 @@ import (
 )
 
 func Start() {
-	err := config.LoadConfig()
-	logger.HandleFatal(err, "Error loading config")
-
-	discord.Start()
+	logger.HandleFatal(config.LoadConfig(), "Error loading config")
+	logger.HandleFatal(discord.Start(), "Error starting discord")
 }
