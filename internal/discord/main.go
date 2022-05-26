@@ -9,7 +9,9 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/discord/commands"
-	"github.com/mauriciofsnts/hermes/internal/discord/commands/categories/utils"
+
+	// register slash commands
+	_ "github.com/mauriciofsnts/hermes/internal/discord/commands/categories"
 )
 
 func Start() error {
@@ -28,7 +30,11 @@ func Start() error {
 		return err
 	}
 
-	commands.RegisterCommand(utils.Ping)
+	err = commands.RegisterModules(dg)
+
+	if err != nil {
+		return err
+	}
 
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
 
