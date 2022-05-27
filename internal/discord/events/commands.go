@@ -7,7 +7,7 @@ import (
 	cfg "github.com/mauriciofsnts/hermes/internal/config"
 )
 
-type DiscordContext struct {
+type CommandContext struct {
 	Session     *discordgo.Session
 	Message     *discordgo.MessageCreate
 	Interaction *discordgo.InteractionCreate
@@ -17,7 +17,7 @@ type DiscordContext struct {
 type SlashCommand struct {
 	*discordgo.ApplicationCommand
 	Alias   []string
-	Handler func(ctx *DiscordContext)
+	Handler func(ctx *CommandContext)
 }
 
 var commands = make(map[string]SlashCommand)
@@ -47,7 +47,7 @@ func RegisterModules(s *discordgo.Session) error {
 		commandName := i.ApplicationCommandData().Name
 
 		if command, ok := commands[commandName]; ok {
-			command.Handler(&DiscordContext{
+			command.Handler(&CommandContext{
 				Session:     s,
 				Interaction: i,
 				reply: func(embeds []*discordgo.MessageEmbed, content string) error {
@@ -95,7 +95,7 @@ func MessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	cmd.Handler(&DiscordContext{
+	cmd.Handler(&CommandContext{
 		Session: s,
 		Message: m,
 		reply: func(embeds []*discordgo.MessageEmbed, content string) error {

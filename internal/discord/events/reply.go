@@ -6,7 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func (ctx *DiscordContext) response(data interface{}) error {
+func (ctx *CommandContext) response(data interface{}) error {
 	var embeds []*discordgo.MessageEmbed
 	var content string //= ""
 
@@ -22,20 +22,20 @@ func (ctx *DiscordContext) response(data interface{}) error {
 
 }
 
-func (ctx *DiscordContext) Error(embed *discordgo.MessageEmbed) {
+func (ctx *CommandContext) Error(embed *discordgo.MessageEmbed) {
 	embed.Color = 0xe33e32
 	ctx.response(embed)
 }
 
-func (ctx *DiscordContext) Ok(embed *discordgo.MessageEmbed) {
+func (ctx *CommandContext) Ok(embed *discordgo.MessageEmbed) {
 	embed.Color = 0x00ff00
 	ctx.response(embed)
 }
 
-func (ctx *DiscordContext) Text(content string) {
+func (ctx *CommandContext) Text(content string) {
 	ctx.response(content)
 }
 
-func (ctx *DiscordContext) Embed(embed *discordgo.MessageEmbed) {
+func (ctx *CommandContext) Embed(embed *discordgo.MessageEmbed) {
 	ctx.response(embed)
 }

@@ -13,7 +13,7 @@ func init() {
 				Description: "Ping the bot",
 			},
 			Alias: []string{"pong", "p"},
-			Handler: func(ctx *events.DiscordContext) {
+			Handler: func(ctx *events.CommandContext) {
 
 				if ctx.Message != nil {
 					ctx.Text("PONG MESSAGE ;)")
