@@ -2,13 +2,13 @@ package utils
 
 import (
 	"github.com/bwmarrin/discordgo"
-	"github.com/mauriciofsnts/hermes/internal/discord/commands"
+	"github.com/mauriciofsnts/hermes/internal/discord/events"
 	"github.com/mauriciofsnts/hermes/internal/utils/reply"
 )
 
 func init() {
-	commands.RegisterCommand(
-		&commands.SlashCommand{
+	events.RegisterCommand(
+		&events.SlashCommand{
 			ApplicationCommand: &discordgo.ApplicationCommand{
 				Name:        "coinflip",
 				Description: "Flip a coin",

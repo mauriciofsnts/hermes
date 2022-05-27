@@ -8,10 +8,10 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/discord/commands"
+	"github.com/mauriciofsnts/hermes/internal/discord/events"
 
 	// register slash commands
-	_ "github.com/mauriciofsnts/hermes/internal/discord/commands/categories"
+	_ "github.com/mauriciofsnts/hermes/internal/discord/events/categories"
 )
 
 func Start() error {
@@ -30,7 +30,9 @@ func Start() error {
 		return err
 	}
 
-	err = commands.RegisterModules(dg)
+	err = events.RegisterModules(dg)
+
+	dg.AddHandler(events.MessageCreate)
 
 	if err != nil {
 		return err
