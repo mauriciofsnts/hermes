@@ -73,20 +73,16 @@ func RegisterModules(s *discordgo.Session) error {
 }
 
 func MessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	// ignore messages from bot himself
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
 
-	// get prefix from config
 	prefix := cfg.Hermes.Prefix
 
-	// check if message starts with prefix
 	if !strings.HasPrefix(m.Content, prefix) {
 		return
 	}
 
-	// get command name
 	commandName := strings.TrimPrefix(m.Content, prefix)
 
 	cmd, found := commands[commandName]
@@ -99,11 +95,13 @@ func MessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		Session: s,
 		Message: m,
 		reply: func(embeds []*discordgo.MessageEmbed, content string) error {
+
 			_, err := s.ChannelMessageSendComplex(
 				m.ChannelID,
 				&discordgo.MessageSend{
-					Embeds:  embeds,
-					Content: content,
+					Embeds:    embeds,
+					Content:   content,
+					Reference: m.Reference(),
 				},
 			)
 

@@ -8,7 +8,7 @@ import (
 
 func (ctx *CommandContext) response(data interface{}) error {
 	var embeds []*discordgo.MessageEmbed
-	var content string //= ""
+	var content string
 
 	switch t := data.(type) {
 	case *discordgo.MessageEmbed:
