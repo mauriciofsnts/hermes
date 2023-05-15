@@ -1,64 +1,71 @@
 package http
 
 import (
-	"log"
-	"net/http"
+	"fmt"
+
 	"net/smtp"
-	"strconv"
+
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/mauriciofsnts/hermes/internal/config"
 )
 
+type Email struct {
+	To      string `json:"to"`
+	Subject string `json:"subject"`
+	Body    string `json:"body"`
+}
+
 func Listen() error {
+	app := fiber.New()
+
 	smtpHost := config.Hermes.SmtpHost
 	smtpPort := config.Hermes.SmtpPort
 	smtpUsername := config.Hermes.SmtpUsername
 	smtpPassword := config.Hermes.SmtpPassword
-	allowedOrigin := config.Hermes.AllowedOrigin
+	addr := fmt.Sprintf("%s:%d", smtpHost, smtpPort)
 
-	// Endereço de e-mail padrão do remetente
 	defaultFrom := config.Hermes.DefaultFrom
 
-	http.HandleFunc("/send-email", func(w http.ResponseWriter, r *http.Request) {
-
-		origin := r.Header.Get("Origin")
-
-		if origin != allowedOrigin {
-			http.Error(w, "Origin not allowed", http.StatusForbidden)
-			return
+	app.Post("/api/send-email", func(c *fiber.Ctx) error {
+		var email Email
+		if err := c.BodyParser(&email); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"Error": "invalid request body",
+			})
 		}
 
-		w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
-
-		// Obtenha os dados do formulário POST
-		to := r.FormValue("to")
-		subject := r.FormValue("subject")
-		body := r.FormValue("body")
+		auth := smtp.PlainAuth("", smtpUsername, smtpPassword, smtpHost)
 
 		// Crie a mensagem de e-mail
 		msg := []byte(
 			"From: " + defaultFrom + "\r\n" +
-				"To: " + to + "\r\n" +
-				"Subject: " + subject + "\r\n" +
+				"To: " + email.To + "\r\n" +
+				"Subject: " + email.Subject + "\r\n" +
 				"\r\n" +
-				body + "\r\n",
+				email.Body + "\r\n",
 		)
 
-		// Autentique-se com o serviço SMTP
-		auth := smtp.PlainAuth("", smtpUsername, smtpPassword, smtpHost)
+		err := smtp.SendMail(
+			addr,
+			auth,
+			defaultFrom,
+			[]string{email.To},
+			msg,
+		)
 
-		// Envie a mensagem de e-mail
-		err := smtp.SendMail(smtpHost+":"+strconv.Itoa(smtpPort), auth, defaultFrom, []string{to}, msg)
 		if err != nil {
-			log.Fatal(err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"Error": "failed to send email: " + err.Error(),
+			})
 		}
 
-		// Responda ao cliente com um status 200 OK
-		w.WriteHeader(http.StatusOK)
+		return c.JSON(fiber.Map{
+			"Message": "email sent successfully",
+		})
 	})
 
-	// Inicie o servidor HTTP na porta 8080
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	app.Listen(":8080")
 
 	return nil
 }
