@@ -1,0 +1,5 @@
+smtpHost: string
+smtpPort: int
+smtpUsername: string
+smtpPassword: string
+defaultFrom: string
