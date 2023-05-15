@@ -14,11 +14,22 @@ func Listen() error {
 	smtpPort := config.Hermes.SmtpPort
 	smtpUsername := config.Hermes.SmtpUsername
 	smtpPassword := config.Hermes.SmtpPassword
+	allowedOrigin := config.Hermes.AllowedOrigin
 
 	// Endereço de e-mail padrão do remetente
 	defaultFrom := config.Hermes.DefaultFrom
 
 	http.HandleFunc("/send-email", func(w http.ResponseWriter, r *http.Request) {
+
+		origin := r.Header.Get("Origin")
+
+		if origin != allowedOrigin {
+			http.Error(w, "Origin not allowed", http.StatusForbidden)
+			return
+		}
+
+		w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
+
 		// Obtenha os dados do formulário POST
 		to := r.FormValue("to")
 		subject := r.FormValue("subject")

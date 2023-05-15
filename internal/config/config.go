@@ -1,9 +1,10 @@
 package config
 
 type Config struct {
-	SmtpHost     string
-	SmtpPort     int
-	SmtpUsername string
-	SmtpPassword string
-	DefaultFrom  string
+	SmtpHost      string
+	SmtpPort      int
+	SmtpUsername  string
+	SmtpPassword  string
+	DefaultFrom   string
+	AllowedOrigin string
 }

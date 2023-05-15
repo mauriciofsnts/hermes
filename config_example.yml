@@ -3,3 +3,4 @@ smtpPort: int
 smtpUsername: string
 smtpPassword: string
 defaultFrom: string
+allowedOrigin: string
