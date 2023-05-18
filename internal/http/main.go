@@ -2,11 +2,9 @@ package http
 
 import (
 	"fmt"
-
 	"net/smtp"
 
 	"github.com/gofiber/fiber/v2"
-
 	"github.com/mauriciofsnts/hermes/internal/config"
 )
 
@@ -23,21 +21,32 @@ func Listen() error {
 	smtpPort := config.Hermes.SmtpPort
 	smtpUsername := config.Hermes.SmtpUsername
 	smtpPassword := config.Hermes.SmtpPassword
-	addr := fmt.Sprintf("%s:%d", smtpHost, smtpPort)
 
+	addr := fmt.Sprintf("%s:%d", smtpHost, smtpPort)
 	defaultFrom := config.Hermes.DefaultFrom
+	allowedOrigin := config.Hermes.AllowedOrigin
 
 	app.Post("/api/send-email", func(c *fiber.Ctx) error {
 		var email Email
+
+		origin := c.Get("Origin")
+
+		if origin != allowedOrigin {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "Origin not allowed",
+			})
+		}
+
+		c.Set("Access-Control-Allow-Origin", allowedOrigin)
+
 		if err := c.BodyParser(&email); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"Error": "invalid request body",
+				"error": "Invalid request body",
 			})
 		}
 
 		auth := smtp.PlainAuth("", smtpUsername, smtpPassword, smtpHost)
 
-		// Crie a mensagem de e-mail
 		msg := []byte(
 			"From: " + defaultFrom + "\r\n" +
 				"To: " + email.To + "\r\n" +
@@ -56,12 +65,12 @@ func Listen() error {
 
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"Error": "failed to send email: " + err.Error(),
+				"error": "Failed to send email: " + err.Error(),
 			})
 		}
 
 		return c.JSON(fiber.Map{
-			"Message": "email sent successfully",
+			"message": "Email sent successfully",
 		})
 	})
 
