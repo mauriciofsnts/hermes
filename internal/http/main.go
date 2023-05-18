@@ -3,8 +3,10 @@ package http
 import (
 	"fmt"
 	"net/smtp"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/mauriciofsnts/hermes/internal/config"
 )
 
@@ -16,6 +18,11 @@ type Email struct {
 
 func Listen() error {
 	app := fiber.New()
+
+	app.Use(limiter.New(limiter.Config{
+		Max:        1,
+		Expiration: 30 * time.Second,
+	}))
 
 	smtpHost := config.Hermes.SmtpHost
 	smtpPort := config.Hermes.SmtpPort
