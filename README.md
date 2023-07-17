@@ -38,8 +38,7 @@ A requisição `POST` deve incluir os seguintes parâmetros no corpo (em formato
 -   `"body"`: O corpo do email.
 
 Exemplo de requisição:
-
-jsonCopy code
+ 
 
 `{
   "to": "exemplo@dominio.com",
@@ -52,17 +51,14 @@ jsonCopy code
 Após enviar a requisição, nossa API responderá com um objeto JSON indicando o resultado da operação:
 
 -   Em caso de envio bem-sucedido do email, a resposta seguirá este formato:
-
-jsonCopy code
+ 
 
 `{
   "message": "Email enviado com sucesso"
 }` 
 
 -   Em caso de falha, a resposta será assim:
-
-jsonCopy code
-
+ 
 `{
   "error": "Falha ao enviar o email: <mensagem de erro>"
 }` 
