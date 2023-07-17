@@ -70,3 +70,9 @@ func SendEmail(c *fiber.Ctx) error {
 		"message": "Email sent successfully",
 	})
 }
+
+func HealthCheck(c *fiber.Ctx) error {
+	return c.JSON(fiber.Map{
+		"message": "Hermes is up and running",
+	})
+}

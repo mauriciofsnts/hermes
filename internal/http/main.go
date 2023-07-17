@@ -21,6 +21,7 @@ func CreateFiberInstance() *fiber.App {
 func Listen(app *fiber.App) error {
 
 	app.Post("/api/send-email", SendEmail)
+	app.Get("/api/health", HealthCheck)
 
 	app.Listen(":8080")
 
