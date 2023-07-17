@@ -23,7 +23,7 @@ Uma vez que o serviço esteja configurado, você pode utilizar nossa API para en
 
 ### Endpoint
 
-O endpoint base para a nossa API é: `https://api.example.com/send-email`
+O endpoint base para a nossa API é: `https://api.example.com/api/send-email`
 
 ### Método de Requisição
 
