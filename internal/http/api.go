@@ -26,15 +26,15 @@ func SendEmail(c *fiber.Ctx) error {
 
 	var email Email
 
-	origin := c.Get("Origin")
+	if allowedOrigin != "" {
+		origin := c.Get("Origin")
 
-	if origin != allowedOrigin {
-		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-			"error": "Origin not allowed",
-		})
+		if origin != allowedOrigin {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "Origin not allowed",
+			})
+		}
 	}
-
-	c.Set("Access-Control-Allow-Origin", allowedOrigin)
 
 	if err := c.BodyParser(&email); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
