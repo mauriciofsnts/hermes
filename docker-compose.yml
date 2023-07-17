@@ -1,0 +1,8 @@
+version: '3'
+services:
+  hermes:
+    image: hermes
+    volumes:
+      - ./config.yml:/app/config.yml
+    ports: 
+      - 8293:8080  
