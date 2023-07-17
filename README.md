@@ -99,4 +99,4 @@ docker-compose down
 
 Nosso Serviço de API de Email foi criado para simplificar o processo de envio de emails utilizando um servidor SMTP. Certifique-se de fornecer configurações precisas do servidor SMTP para operações sem complicações. Se encontrar qualquer problema durante o uso da API, consulte as mensagens de erro na resposta para solucionar problemas.
 
-Desejamos a você uma experiência fantástica ao utilizar nosso Serviço de API de Email! Para qualquer dúvida ou assistência, não hesite em contatar nossa equipe de suporte em support@example.com. Boa jornada de envio de emails! 😎📧✉️
+Desejo a você uma experiência fantástica ao utilizar nosso Serviço de API de Email! 😎📧✉️
