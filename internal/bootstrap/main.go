@@ -9,5 +9,5 @@ import (
 func Start() {
 	logger.Debug("Starting Hermes...")
 	logger.HandleFatal(config.LoadConfig(), "Failed to load config")
-	logger.HandleFatal(http.Listen(), "Failed to start HTTP server")
+	logger.HandleFatal(http.Listen(http.CreateFiberInstance()), "Failed to start HTTP server")
 }
