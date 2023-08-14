@@ -2,7 +2,9 @@ package http
 
 import (
 	"fmt"
+	"net/mail"
 	"net/smtp"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/mauriciofsnts/hermes/internal/config"
@@ -44,20 +46,30 @@ func SendEmail(c *fiber.Ctx) error {
 
 	auth := smtp.PlainAuth("", smtpUsername, smtpPassword, smtpHost)
 
-	msg := []byte(
-		"From: " + defaultFrom + "\r\n" +
-			"To: " + email.To + "\r\n" +
-			"Subject: " + email.Subject + "\r\n" +
-			"\r\n" +
-			email.Body + "\r\n",
-	)
+	header := make(mail.Header)
+
+	header["From"] = []string{defaultFrom}
+	header["To"] = []string{email.To}
+	header["Subject"] = []string{email.Subject}
+
+	var msg strings.Builder
+
+	for key, values := range header {
+		msg.WriteString(key)
+		msg.WriteString(": ")
+		msg.WriteString(strings.Join(values, ", "))
+		msg.WriteString("\r\n")
+	}
+
+	msg.WriteString("\r\n")
+	msg.WriteString(email.Body)
 
 	err := smtp.SendMail(
 		addr,
 		auth,
 		defaultFrom,
 		[]string{email.To},
-		msg,
+		[]byte(msg.String()),
 	)
 
 	if err != nil {
