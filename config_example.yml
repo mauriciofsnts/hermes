@@ -4,3 +4,7 @@ smtpUsername: string
 smtpPassword: string
 defaultFrom: string
 allowedOrigin: string
+
+kafka:
+  brokers:
+    - kafka1:19092

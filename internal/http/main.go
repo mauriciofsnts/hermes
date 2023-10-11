@@ -3,6 +3,7 @@ package http
 import (
 	"time"
 
+	"github.com/Pauloo27/logger"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 )
@@ -11,7 +12,7 @@ func CreateFiberInstance() *fiber.App {
 	app := fiber.New()
 
 	app.Use(limiter.New(limiter.Config{
-		Max:        1,
+		Max:        5,
 		Expiration: 30 * time.Second,
 	}))
 
@@ -19,11 +20,10 @@ func CreateFiberInstance() *fiber.App {
 }
 
 func Listen(app *fiber.App) error {
+	logger.Debug("Starting HTTP server...")
 
 	app.Post("/api/send-email", SendEmail)
 	app.Get("/api/health", HealthCheck)
 
-	app.Listen(":8080")
-
-	return nil
+	return app.Listen(":8082")
 }
