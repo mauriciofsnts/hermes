@@ -2,13 +2,10 @@ package http
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/events"
+	"github.com/mauriciofsnts/hermes/internal/storage"
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
-
-var producer = events.NewProducer[types.Email]()
 
 func SendEmail(c *fiber.Ctx) error {
 	allowedOrigin := config.Hermes.AllowedOrigin
@@ -31,7 +28,10 @@ func SendEmail(c *fiber.Ctx) error {
 		})
 	}
 
-	err := producer.Produce(uuid.New().String(), email, events.EmailTopic)
+	// !TODO: move this for another place grr
+	var producer = storage.NewStorage()
+
+	err := producer.Write(email)
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

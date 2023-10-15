@@ -8,7 +8,6 @@ import (
 	"github.com/Pauloo27/logger"
 	"github.com/gofiber/fiber/v2"
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/events"
 	"github.com/mauriciofsnts/hermes/internal/http"
 	"github.com/mauriciofsnts/hermes/internal/worker"
 )
@@ -17,7 +16,6 @@ func Start() {
 
 	logger.Debug("Starting Hermes...")
 	logger.HandleFatal(config.LoadConfig(), "Failed to load config")
-	logger.HandleFatal(events.CreateTopic(), "Failed to create Kafka topic")
 
 	go worker.StartWorker()
 
@@ -34,7 +32,7 @@ func onShutdown(app *fiber.App) {
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGKILL)
 	<-stop
 
-	worker.StopWorker()
+	// worker.StopWorker()
 	app.Shutdown()
 	os.Exit(0)
 }

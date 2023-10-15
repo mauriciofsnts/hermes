@@ -1,23 +1,24 @@
-package events
+package kafka
 
 import (
 	"context"
 	"encoding/json"
 
-	"github.com/segmentio/kafka-go"
+	kafkaGo "github.com/segmentio/kafka-go"
 )
 
 type Consumer[T any] struct {
-	reader *kafka.Reader
-	Dialer *kafka.Dialer
+	reader *kafkaGo.Reader
+	Dialer *kafkaGo.Dialer
 	Topic  string
 }
 
-func NewConsumer[T any](dialer *kafka.Dialer, topic string) *Consumer[T] {
+func NewConsumer[T any](dialer *kafkaGo.Dialer, topic string) *Consumer[T] {
 	return &Consumer[T]{
 		Dialer: dialer,
 		Topic:  topic,
-		reader: kafka.NewReader(kafka.ReaderConfig{
+		reader: kafkaGo.NewReader(kafkaGo.ReaderConfig{
+			// TODO: Move to config
 			Brokers: []string{"localhost:9092"},
 			Topic:   topic,
 			Dialer:  dialer,

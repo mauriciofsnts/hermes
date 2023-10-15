@@ -5,6 +5,14 @@ smtpPassword: string
 defaultFrom: string
 allowedOrigin: string
 
+redis:
+  host: localhost
+  port: 6379
+  password: string
+  enabled: false
+  
 kafka:
+  enabled: true
   brokers:
     - kafka1:19092
+  
