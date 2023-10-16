@@ -5,11 +5,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/Pauloo27/logger"
 	"github.com/gofiber/fiber/v2"
 	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/http"
 	"github.com/mauriciofsnts/hermes/internal/worker"
+	"github.com/pauloo27/logger"
 )
 
 func Start() {

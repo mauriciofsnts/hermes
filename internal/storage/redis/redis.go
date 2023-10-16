@@ -3,9 +3,9 @@ package redis
 import (
 	"strconv"
 
-	"github.com/Pauloo27/logger"
 	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/types"
+	"github.com/pauloo27/logger"
 	"github.com/redis/go-redis/v9"
 )
 

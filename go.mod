@@ -3,7 +3,6 @@ module github.com/mauriciofsnts/hermes
 go 1.19
 
 require (
-	github.com/Pauloo27/logger v0.0.0-20220320171458-4991d8b58895
 	github.com/confluentinc/confluent-kafka-go v1.8.2
 	github.com/ghodss/yaml v1.0.0
 )
@@ -15,13 +14,14 @@ require (
 )
 
 require (
-	github.com/andybalholm/brotli v1.0.5 // indirect	
+	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/gofiber/fiber/v2 v2.45.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/klauspost/compress v1.16.5 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
+	github.com/pauloo27/logger v0.0.0-20230613054337-e866488ae2f4
 	github.com/philhofer/fwd v1.1.2 // indirect
 	github.com/redis/go-redis/v9 v9.2.1
 	github.com/rivo/uniseg v0.4.4 // indirect

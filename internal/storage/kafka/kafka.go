@@ -3,9 +3,9 @@ package kafka
 import (
 	"time"
 
-	"github.com/Pauloo27/logger"
 	"github.com/google/uuid"
 	"github.com/mauriciofsnts/hermes/internal/types"
+	"github.com/pauloo27/logger"
 	kafkaGo "github.com/segmentio/kafka-go"
 )
 

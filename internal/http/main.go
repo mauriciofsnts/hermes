@@ -3,9 +3,9 @@ package http
 import (
 	"time"
 
-	"github.com/Pauloo27/logger"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/pauloo27/logger"
 )
 
 func CreateFiberInstance() *fiber.App {

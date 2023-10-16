@@ -3,7 +3,7 @@ package kafka
 import (
 	"net"
 
-	"github.com/Pauloo27/logger"
+	"github.com/pauloo27/logger"
 	kafkaGo "github.com/segmentio/kafka-go"
 )
 
