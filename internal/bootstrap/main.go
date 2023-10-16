@@ -17,7 +17,6 @@ func Start() {
 	logger.HandleFatal(config.LoadConfig(), "Failed to load config")
 
 	go worker.StartWorker()
-
 	app := http.CreateFiberInstance()
 
 	go onShutdown(app)
@@ -31,7 +30,7 @@ func onShutdown(app *fiber.App) {
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGKILL)
 	<-stop
 
-	// worker.StopWorker()
+	worker.StopWorker()
 	app.Shutdown()
 	os.Exit(0)
 }

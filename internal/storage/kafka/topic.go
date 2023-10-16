@@ -8,20 +8,18 @@ import (
 	kafkaGo "github.com/segmentio/kafka-go"
 )
 
-var defaultTopics = []string{}
-
-func init() {
-	if config.Hermes.Kafka.Topic != "" {
-		defaultTopics = append(defaultTopics, config.Hermes.Kafka.Topic)
-	}
-}
-
 func CreateTopic() error {
+	var defaultTopics = []string{}
+
 	connection, err := kafkaGo.Dial("tcp", fmt.Sprintf("%s:%d", config.Hermes.Kafka.Host, config.Hermes.Kafka.Port))
 
 	if err != nil {
 		logger.Error("Failed to connect to Kafka", err)
 		return err
+	}
+
+	if config.Hermes.Kafka.Topic != "" {
+		defaultTopics = append(defaultTopics, config.Hermes.Kafka.Topic)
 	}
 
 	topics := make([]kafkaGo.TopicConfig, len(defaultTopics))

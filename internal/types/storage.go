@@ -1,6 +1,8 @@
 package types
 
+import "context"
+
 type Storage[T any] interface {
-	Read()
+	Read(ctx context.Context)
 	Write(T) error
 }

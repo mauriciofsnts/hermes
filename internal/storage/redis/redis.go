@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/mauriciofsnts/hermes/internal/config"
@@ -19,7 +20,7 @@ func NewRedisClient() *redis.Client {
 
 type RedisStorage[T any] struct{}
 
-func (r *RedisStorage[T]) Read() {
+func (r *RedisStorage[T]) Read(ctx context.Context) {
 	logger.Info("Starting Redis consumer...")
 
 	var emailConsumer *Consumer[types.Email]
@@ -28,14 +29,25 @@ func (r *RedisStorage[T]) Read() {
 
 	emailConsumer = NewConsumer[types.Email](client, config.Hermes.Redis.Topic)
 
-	emailConsumer.Read(func(email *types.Email, err error) {
-		if err != nil {
-			logger.Error("Failed to read email", err)
-			return
-		}
+	readCh := make(chan ReadData[types.Email])
 
-		logger.Info("Email received", email)
-	})
+	go emailConsumer.Read(readCh)
+
+	for {
+		select {
+		case <-ctx.Done():
+			logger.Info("Stopping redis consumer...")
+			emailConsumer.Close()
+			return
+		case data := <-readCh:
+			if data.Err != nil {
+				logger.Error("Failed to read email", data.Err)
+				continue
+			}
+			// TODO: actually send email
+			logger.Info("Email received", data.Data)
+		}
+	}
 
 }
 

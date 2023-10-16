@@ -28,13 +28,17 @@ func NewConsumer[T any](dialer *kafkaGo.Dialer, topic string) *Consumer[T] {
 	}
 }
 
-// TODO: Move to a channel
-func (c *Consumer[T]) Read(callback func(*T, error)) {
+type ReadData[T any] struct {
+	Data *T
+	Err  error
+}
+
+func (c *Consumer[T]) Read(ch chan<- ReadData[T]) {
 	for {
 		message, err := c.reader.ReadMessage(context.Background())
 
 		if err != nil {
-			callback(nil, err)
+			ch <- ReadData[T]{nil, err}
 			continue
 		}
 
@@ -43,11 +47,11 @@ func (c *Consumer[T]) Read(callback func(*T, error)) {
 		err = json.Unmarshal(message.Value, &model)
 
 		if err != nil {
-			callback(nil, err)
+			ch <- ReadData[T]{nil, err}
 			continue
 		}
 
-		callback(&model, nil)
+		ch <- ReadData[T]{&model, nil}
 	}
 }
 

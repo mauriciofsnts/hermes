@@ -18,14 +18,19 @@ func NewConsumer[T any](client *redis.Client, topic string) *Consumer[T] {
 	}
 }
 
-func (c *Consumer[T]) Read(callback func(*T, error)) error {
+type ReadData[T any] struct {
+	Data *T
+	Err  error
+}
+
+func (c *Consumer[T]) Read(ch chan<- ReadData[T]) {
 	pubsub := c.Client.Subscribe(ctx, c.Topic)
 
 	for {
 		msg, err := pubsub.ReceiveMessage(ctx)
 
 		if err != nil {
-			callback(nil, err)
+			ch <- ReadData[T]{nil, err}
 			continue
 		}
 
@@ -34,11 +39,15 @@ func (c *Consumer[T]) Read(callback func(*T, error)) error {
 		err = json.Unmarshal([]byte(msg.Payload), &model)
 
 		if err != nil {
-			callback(nil, err)
+			ch <- ReadData[T]{nil, err}
 			continue
 		}
 
-		callback(&model, nil)
+		ch <- ReadData[T]{&model, nil}
 	}
 
+}
+
+func (c *Consumer[T]) Close() error {
+	return c.Client.Close()
 }

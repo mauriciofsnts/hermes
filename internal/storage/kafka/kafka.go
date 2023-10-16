@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,7 +13,7 @@ import (
 
 type KafkaStorage[T any] struct{}
 
-func (k *KafkaStorage[T]) Read() {
+func (k *KafkaStorage[T]) Read(ctx context.Context) {
 	logger.Info("Starting Kafka consumer...")
 
 	var emailConsumer *Consumer[types.Email]
@@ -21,15 +22,26 @@ func (k *KafkaStorage[T]) Read() {
 
 	emailConsumer = NewConsumer[types.Email](dialer, config.Hermes.Kafka.Topic)
 
-	emailConsumer.Read(func(email *types.Email, err error) {
-		if err != nil {
-			logger.Error("Failed to read email", err)
-			return
-		}
+	readCh := make(chan ReadData[types.Email])
 
-		// TODO: Send email
-		logger.Info("Email received", email)
-	})
+	go emailConsumer.Read(readCh)
+
+	for {
+		select {
+		case <-ctx.Done():
+			logger.Info("Stopping Kafka consumer...")
+			emailConsumer.Close()
+			return
+		case data := <-readCh:
+			if data.Err != nil {
+				logger.Error("Failed to read email", data.Err)
+				continue
+			}
+			// TODO: actually send email
+			logger.Info("Email received", data.Data)
+		}
+	}
+
 }
 
 func (k *KafkaStorage[T]) Write(email types.Email) error {
