@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/mauriciofsnts/hermes/internal/config"
 	kafkaGo "github.com/segmentio/kafka-go"
 )
 
@@ -14,12 +15,12 @@ type Consumer[T any] struct {
 }
 
 func NewConsumer[T any](dialer *kafkaGo.Dialer, topic string) *Consumer[T] {
+
 	return &Consumer[T]{
 		Dialer: dialer,
 		Topic:  topic,
 		reader: kafkaGo.NewReader(kafkaGo.ReaderConfig{
-			// TODO: Move to config
-			Brokers: []string{"localhost:9092"},
+			Brokers: config.Hermes.Kafka.Brokers,
 			Topic:   topic,
 			Dialer:  dialer,
 			GroupID: "hermes",

@@ -29,7 +29,7 @@ func (p *Producer[T]) Produce(value T) error {
 		return err
 	}
 
-	pubsub := p.Client.Subscribe(ctx, Topic)
+	pubsub := p.Client.Subscribe(ctx, p.Topic)
 
 	_, err = pubsub.Receive(ctx)
 

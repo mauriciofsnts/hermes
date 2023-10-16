@@ -1,23 +1,23 @@
 package kafka
 
 import (
-	"net"
+	"fmt"
 
+	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/pauloo27/logger"
 	kafkaGo "github.com/segmentio/kafka-go"
 )
 
-const (
-	// TODO: Move to config
-	EmailTopic = "kafka-email-topic"
-)
+var defaultTopics = []string{}
 
-var defaultTopics = []string{
-	EmailTopic,
+func init() {
+	if config.Hermes.Kafka.Topic != "" {
+		defaultTopics = append(defaultTopics, config.Hermes.Kafka.Topic)
+	}
 }
 
 func CreateTopic() error {
-	connection, err := kafkaGo.Dial("tcp", net.JoinHostPort("localhost", "9092"))
+	connection, err := kafkaGo.Dial("tcp", fmt.Sprintf("%s:%d", config.Hermes.Kafka.Host, config.Hermes.Kafka.Port))
 
 	if err != nil {
 		logger.Error("Failed to connect to Kafka", err)

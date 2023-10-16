@@ -6,11 +6,6 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-const (
-	// TODO: Move to config
-	Topic = "hermes"
-)
-
 type Consumer[T any] struct {
 	Client *redis.Client
 	Topic  string
@@ -24,7 +19,7 @@ func NewConsumer[T any](client *redis.Client, topic string) *Consumer[T] {
 }
 
 func (c *Consumer[T]) Read(callback func(*T, error)) error {
-	pubsub := c.Client.Subscribe(ctx, Topic)
+	pubsub := c.Client.Subscribe(ctx, c.Topic)
 
 	for {
 		msg, err := pubsub.ReceiveMessage(ctx)

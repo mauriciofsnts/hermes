@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/types"
 	"github.com/pauloo27/logger"
 	kafkaGo "github.com/segmentio/kafka-go"
@@ -18,7 +19,7 @@ func (k *KafkaStorage[T]) Read() {
 
 	dialer := &kafkaGo.Dialer{Timeout: 10 * time.Second, DualStack: true}
 
-	emailConsumer = NewConsumer[types.Email](dialer, EmailTopic)
+	emailConsumer = NewConsumer[types.Email](dialer, config.Hermes.Kafka.Topic)
 
 	emailConsumer.Read(func(email *types.Email, err error) {
 		if err != nil {
@@ -34,7 +35,7 @@ func (k *KafkaStorage[T]) Read() {
 func (k *KafkaStorage[T]) Write(email types.Email) error {
 	var producer = NewProducer[types.Email]()
 
-	err := producer.Produce(uuid.New().String(), email, EmailTopic)
+	err := producer.Produce(uuid.New().String(), email, config.Hermes.Kafka.Topic)
 
 	if err != nil {
 		logger.Error("Failed to produce email", err)

@@ -9,10 +9,12 @@ redis:
   host: localhost
   port: 6379
   password: string
+  topic: string
   enabled: false
   
 kafka:
   enabled: true
+  topic: string
   brokers:
     - kafka1:19092
   

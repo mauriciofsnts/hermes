@@ -1,7 +1,7 @@
 package redis
 
 import (
-	"strconv"
+	"fmt"
 
 	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/types"
@@ -11,7 +11,7 @@ import (
 
 func NewRedisClient() *redis.Client {
 	return redis.NewClient(&redis.Options{
-		Addr:     config.Hermes.Redis.Host + ":" + strconv.Itoa(config.Hermes.Redis.Port),
+		Addr:     fmt.Sprintf("%s:%d", config.Hermes.Redis.Host, config.Hermes.Redis.Port),
 		Password: config.Hermes.Redis.Password,
 		DB:       0,
 	})
@@ -26,7 +26,7 @@ func (r *RedisStorage[T]) Read() {
 
 	client := NewRedisClient()
 
-	emailConsumer = NewConsumer[types.Email](client, Topic)
+	emailConsumer = NewConsumer[types.Email](client, config.Hermes.Redis.Topic)
 
 	emailConsumer.Read(func(email *types.Email, err error) {
 		if err != nil {
@@ -45,7 +45,7 @@ func (r *RedisStorage[T]) Write(email types.Email) error {
 
 	producer := NewProducer[types.Email](
 		*client,
-		Topic,
+		config.Hermes.Redis.Topic,
 	)
 
 	err := producer.Produce(email)

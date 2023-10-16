@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/mauriciofsnts/hermes/internal/config"
 	kafkaGo "github.com/segmentio/kafka-go"
 )
 
@@ -20,8 +21,7 @@ func NewProducer[T any]() *Producer[T] {
 	}
 
 	writer := kafkaGo.NewWriter(kafkaGo.WriterConfig{
-		// TODO: Move to config
-		Brokers:   []string{"localhost:9092"},
+		Brokers:   config.Hermes.Kafka.Brokers,
 		Dialer:    dialer,
 		BatchSize: 1,
 	})

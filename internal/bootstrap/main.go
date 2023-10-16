@@ -13,7 +13,6 @@ import (
 )
 
 func Start() {
-
 	logger.Debug("Starting Hermes...")
 	logger.HandleFatal(config.LoadConfig(), "Failed to load config")
 
