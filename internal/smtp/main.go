@@ -8,9 +8,11 @@ import (
 
 	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/types"
+	"github.com/pauloo27/logger"
 )
 
 func SendEmail(email *types.Email) error {
+	logger.Info("Sending email...")
 
 	smtpHost := config.Hermes.SmtpHost
 	smtpPort := config.Hermes.SmtpPort

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/mauriciofsnts/hermes/internal/config"
+	"github.com/mauriciofsnts/hermes/internal/smtp"
 	"github.com/mauriciofsnts/hermes/internal/types"
 	"github.com/pauloo27/logger"
 	"github.com/redis/go-redis/v9"
@@ -44,8 +45,8 @@ func (r *RedisStorage[T]) Read(ctx context.Context) {
 				logger.Error("Failed to read email", data.Err)
 				continue
 			}
-			// TODO: actually send email
-			logger.Info("Email received", data.Data)
+
+			smtp.SendEmail(data.Data)
 		}
 	}
 

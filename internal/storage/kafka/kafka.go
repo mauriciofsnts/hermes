@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mauriciofsnts/hermes/internal/config"
+	"github.com/mauriciofsnts/hermes/internal/smtp"
 	"github.com/mauriciofsnts/hermes/internal/types"
 	"github.com/pauloo27/logger"
 	kafkaGo "github.com/segmentio/kafka-go"
@@ -37,8 +38,8 @@ func (k *KafkaStorage[T]) Read(ctx context.Context) {
 				logger.Error("Failed to read email", data.Err)
 				continue
 			}
-			// TODO: actually send email
-			logger.Info("Email received", data.Data)
+
+			smtp.SendEmail(data.Data)
 		}
 	}
 
