@@ -3,12 +3,12 @@ package http
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/storage"
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
 
 func SendEmail(c *fiber.Ctx) error {
 	allowedOrigin := config.Hermes.AllowedOrigin
+	storage := c.Locals(storageLocalName).(types.Storage[types.Email])
 
 	var email types.Email
 
@@ -28,10 +28,7 @@ func SendEmail(c *fiber.Ctx) error {
 		})
 	}
 
-	// !TODO: move this for another place grr
-	var producer = storage.NewStorage()
-
-	err := producer.Write(email)
+	err := storage.Write(email)
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

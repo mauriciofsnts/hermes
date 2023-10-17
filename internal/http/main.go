@@ -5,14 +5,22 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/mauriciofsnts/hermes/internal/types"
 	"github.com/pauloo27/logger"
 )
 
-func CreateFiberInstance() *fiber.App {
+var storageLocalName = "storage"
+
+func CreateFiberInstance(storage types.Storage[types.Email]) *fiber.App {
 	app := fiber.New()
 
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals(storageLocalName, storage)
+		return c.Next()
+	})
+
 	app.Use(limiter.New(limiter.Config{
-		Max:        5,
+		Max:        115,
 		Expiration: 30 * time.Second,
 	}))
 

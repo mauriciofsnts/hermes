@@ -12,7 +12,9 @@ import (
 	kafkaGo "github.com/segmentio/kafka-go"
 )
 
-type KafkaStorage[T any] struct{}
+type KafkaStorage[T any] struct {
+	producer *Producer[T]
+}
 
 func (k *KafkaStorage[T]) Read(ctx context.Context) {
 	logger.Info("Starting Kafka consumer...")
@@ -35,7 +37,7 @@ func (k *KafkaStorage[T]) Read(ctx context.Context) {
 			return
 		case data := <-readCh:
 			if data.Err != nil {
-				logger.Error("Failed to read email", data.Err)
+				logger.Error("Failed to read content", data.Err)
 				continue
 			}
 
@@ -45,20 +47,19 @@ func (k *KafkaStorage[T]) Read(ctx context.Context) {
 
 }
 
-func (k *KafkaStorage[T]) Write(email types.Email) error {
-	var producer = NewProducer[types.Email]()
-
-	err := producer.Produce(uuid.New().String(), email, config.Hermes.Kafka.Topic)
+func (k *KafkaStorage[T]) Write(content T) error {
+	err := k.producer.Produce(uuid.New().String(), content, config.Hermes.Kafka.Topic)
 
 	if err != nil {
-		logger.Error("Failed to produce email", err)
+		logger.Error("Failed to produce content", err)
 		return err
 	}
 
-	logger.Info("Email produced", email)
 	return nil
 }
 
 func NewKafkaStorage() types.Storage[types.Email] {
-	return &KafkaStorage[types.Email]{}
+	return &KafkaStorage[types.Email]{
+		producer: NewProducer[types.Email](),
+	}
 }

@@ -3,6 +3,7 @@ package storage
 import (
 	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/storage/kafka"
+	"github.com/mauriciofsnts/hermes/internal/storage/memory"
 	"github.com/mauriciofsnts/hermes/internal/storage/redis"
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
@@ -23,12 +24,12 @@ func NewStorage() types.Storage[types.Email] {
 
 		storage = kafka.NewKafkaStorage()
 		return storage
-	}
-
-	if redisEnabled {
+	} else if redisEnabled {
 		storage = redis.NewRedisStorage()
+		return storage
+	} else {
+		storage = memory.NewMemoryStorage()
 		return storage
 	}
 
-	panic("No storage enabled")
 }

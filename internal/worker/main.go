@@ -3,13 +3,12 @@ package worker
 import (
 	"context"
 
-	"github.com/mauriciofsnts/hermes/internal/storage"
+	"github.com/mauriciofsnts/hermes/internal/types"
 )
 
 var cancel context.CancelFunc
 
-func StartWorker() {
-	storage := storage.NewStorage()
+func StartWorker(storage types.Storage[types.Email]) {
 
 	var ctx context.Context
 
