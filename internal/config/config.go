@@ -1,14 +1,11 @@
 package config
 
 type Config struct {
-	SmtpHost      string
-	SmtpPort      int
-	SmtpUsername  string
-	SmtpPassword  string
 	DefaultFrom   string
 	AllowedOrigin string
 	Redis         Redis
 	Kafka         Kafka
+	Smtp          Smtp
 }
 
 type Redis struct {
@@ -25,4 +22,11 @@ type Kafka struct {
 	Enabled bool
 	Topic   string
 	Brokers []string
+}
+
+type Smtp struct {
+	Host     string
+	Port     int
+	Username string
+	Password string
 }

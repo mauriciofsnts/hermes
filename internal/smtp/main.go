@@ -14,10 +14,10 @@ import (
 func SendEmail(email *types.Email) error {
 	logger.Info("Sending email...")
 
-	smtpHost := config.Hermes.SmtpHost
-	smtpPort := config.Hermes.SmtpPort
-	smtpUsername := config.Hermes.SmtpUsername
-	smtpPassword := config.Hermes.SmtpPassword
+	smtpHost := config.Hermes.Smtp.Host
+	smtpPort := config.Hermes.Smtp.Port
+	smtpUsername := config.Hermes.Smtp.Username
+	smtpPassword := config.Hermes.Smtp.Password
 	defaultFrom := config.Hermes.DefaultFrom
 
 	addr := fmt.Sprintf("%s:%d", smtpHost, smtpPort)

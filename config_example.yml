@@ -1,7 +1,3 @@
-smtpHost: string
-smtpPort: int
-smtpUsername: string
-smtpPassword: string
 defaultFrom: string
 allowedOrigin: string
 
@@ -11,10 +7,15 @@ redis:
   password: string
   topic: string
   enabled: false
-  
+
 kafka:
   enabled: true
   topic: string
   brokers:
     - kafka1:19092
-  
+
+smtp:
+  host: string
+  port: int
+  username: string
+  password: string
