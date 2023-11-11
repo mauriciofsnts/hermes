@@ -10,13 +10,13 @@ import (
 	"github.com/pauloo27/logger"
 )
 
-const storageLocalName = "storage"
+const storageKeyName = "storage"
 
 func CreateFiberInstance(storage types.Storage[types.Email]) *fiber.App {
 	app := fiber.New()
 
 	app.Use(func(c *fiber.Ctx) error {
-		c.Locals(storageLocalName, storage)
+		c.Locals(storageKeyName, storage)
 		return c.Next()
 	})
 
