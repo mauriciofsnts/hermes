@@ -1,15 +1,16 @@
-package http
+package router
 
 import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/mauriciofsnts/hermes/internal/controller"
 	"github.com/mauriciofsnts/hermes/internal/types"
 	"github.com/pauloo27/logger"
 )
 
-var storageLocalName = "storage"
+const storageLocalName = "storage"
 
 func CreateFiberInstance(storage types.Storage[types.Email]) *fiber.App {
 	app := fiber.New()
@@ -24,14 +25,23 @@ func CreateFiberInstance(storage types.Storage[types.Email]) *fiber.App {
 		Expiration: 30 * time.Second,
 	}))
 
+	app.Use(Origin())
+
 	return app
 }
 
 func Listen(app *fiber.App) error {
 	logger.Debug("Starting HTTP server...")
 
-	app.Post("/api/send-email", SendEmail)
-	app.Get("/api/health", HealthCheck)
+	healthController := controller.NewHealthController()
+	emailController := controller.NewEmailController()
+	templateController := controller.NewTemplateController()
+
+	app.Post("/api/send-email", emailController.SendEmail)
+	app.Get("/api/health", healthController.Health)
+
+	app.Get("/api/templates/:slug/raw", templateController.GetRaw)
+	app.Post("/api/templates", templateController.Create)
 
 	return app.Listen(":8082")
 }

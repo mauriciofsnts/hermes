@@ -1,5 +1,6 @@
 defaultFrom: string
 allowedOrigin: string
+location: templates
 
 redis:
   host: localhost

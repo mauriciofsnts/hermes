@@ -7,7 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/http"
+	"github.com/mauriciofsnts/hermes/internal/router"
 	"github.com/mauriciofsnts/hermes/internal/storage"
 	"github.com/mauriciofsnts/hermes/internal/worker"
 	"github.com/pauloo27/logger"
@@ -20,10 +20,10 @@ func Start() {
 	storage := storage.NewStorage()
 
 	go worker.StartWorker(storage)
-	app := http.CreateFiberInstance(storage)
+	app := router.CreateFiberInstance(storage)
 
 	go onShutdown(app)
-	logger.HandleFatal(http.Listen(app), "Failed to start HTTP server")
+	logger.HandleFatal(router.Listen(app), "Failed to start HTTP server")
 
 }
 

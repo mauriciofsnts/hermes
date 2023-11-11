@@ -11,7 +11,6 @@ import (
 var storage types.Storage[types.Email]
 
 func NewStorage() types.Storage[types.Email] {
-
 	kafkaEnabled := config.Hermes.Kafka.Enabled
 	redisEnabled := config.Hermes.Redis.Enabled
 
@@ -31,5 +30,4 @@ func NewStorage() types.Storage[types.Email] {
 		storage = memory.NewMemoryStorage()
 		return storage
 	}
-
 }

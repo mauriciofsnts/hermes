@@ -3,6 +3,7 @@ package config
 type Config struct {
 	DefaultFrom   string
 	AllowedOrigin string
+	Location      string
 	Redis         Redis
 	Kafka         Kafka
 	Smtp          Smtp
