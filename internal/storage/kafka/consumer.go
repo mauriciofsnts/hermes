@@ -15,7 +15,6 @@ type Consumer[T any] struct {
 }
 
 func NewConsumer[T any](dialer *kafkaGo.Dialer, topic string) *Consumer[T] {
-
 	return &Consumer[T]{
 		Dialer: dialer,
 		Topic:  topic,

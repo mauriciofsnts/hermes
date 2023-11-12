@@ -15,30 +15,28 @@ func NewRedisClient() *redis.Client {
 	return redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", config.Hermes.Redis.Host, config.Hermes.Redis.Port),
 		Password: config.Hermes.Redis.Password,
-		DB:       0,
 	})
 }
 
-type RedisStorage[T any] struct{}
+type RedisStorage[T any] struct {
+	client   *redis.Client
+	consumer *Consumer[types.Email]
+}
 
 func (r *RedisStorage[T]) Read(ctx context.Context) {
 	logger.Info("Starting Redis consumer...")
 
-	var emailConsumer *Consumer[types.Email]
-
-	client := NewRedisClient()
-
-	emailConsumer = NewConsumer[types.Email](client, config.Hermes.Redis.Topic)
+	r.consumer = NewConsumer[types.Email](r.client, config.Hermes.Redis.Topic)
 
 	readCh := make(chan ReadData[types.Email])
 
-	go emailConsumer.Read(readCh)
+	go r.consumer.Read(readCh)
 
 	for {
 		select {
 		case <-ctx.Done():
 			logger.Info("Stopping redis consumer...")
-			emailConsumer.Close()
+			r.consumer.Close()
 			return
 		case data := <-readCh:
 			if data.Err != nil {
@@ -53,11 +51,8 @@ func (r *RedisStorage[T]) Read(ctx context.Context) {
 }
 
 func (r *RedisStorage[T]) Write(email types.Email) error {
-
-	client := NewRedisClient()
-
 	producer := NewProducer[types.Email](
-		*client,
+		*r.client,
 		config.Hermes.Redis.Topic,
 	)
 
@@ -68,11 +63,26 @@ func (r *RedisStorage[T]) Write(email types.Email) error {
 		return err
 	}
 
-	// TODO: Send email
 	logger.Info("Email produced", email)
 	return nil
 }
 
+func (r *RedisStorage[T]) Ping() (string, error) {
+	_, err := r.client.Ping(ctx).Result()
+
+	if err != nil {
+		logger.Error("Failed to ping redis", err)
+		return "", err
+	}
+
+	return "Redis is up", nil
+}
+
 func NewRedisStorage() types.Storage[types.Email] {
-	return &RedisStorage[types.Email]{}
+	client := NewRedisClient()
+
+	return &RedisStorage[types.Email]{
+		client:   client,
+		consumer: NewConsumer[types.Email](client, config.Hermes.Redis.Topic),
+	}
 }

@@ -14,26 +14,22 @@ import (
 
 type KafkaStorage[T any] struct {
 	producer *Producer[T]
+	dialer   *kafkaGo.Dialer
+	consumer *Consumer[types.Email]
 }
 
 func (k *KafkaStorage[T]) Read(ctx context.Context) {
 	logger.Info("Starting Kafka consumer...")
 
-	var emailConsumer *Consumer[types.Email]
+	readCh := make(chan ReadData[types.Email], 10)
 
-	dialer := &kafkaGo.Dialer{Timeout: 10 * time.Second, DualStack: true}
-
-	emailConsumer = NewConsumer[types.Email](dialer, config.Hermes.Kafka.Topic)
-
-	readCh := make(chan ReadData[types.Email])
-
-	go emailConsumer.Read(readCh)
+	go k.consumer.Read(readCh)
 
 	for {
 		select {
 		case <-ctx.Done():
 			logger.Info("Stopping Kafka consumer...")
-			emailConsumer.Close()
+			k.consumer.Close()
 			return
 		case data := <-readCh:
 			if data.Err != nil {
@@ -58,8 +54,24 @@ func (k *KafkaStorage[T]) Write(content T) error {
 	return nil
 }
 
+func (k *KafkaStorage[T]) Ping() (string, error) {
+	conn, err := k.dialer.DialLeader(context.Background(), "tcp", config.Hermes.Kafka.Host, config.Hermes.Kafka.Topic, 0)
+
+	if err != nil {
+		logger.Error("Failed to connect to Kafka", err)
+		return "", err
+	}
+
+	conn.Close()
+	return "Kafka is up", nil
+}
+
 func NewKafkaStorage() types.Storage[types.Email] {
+	dialer := &kafkaGo.Dialer{Timeout: 10 * time.Second, DualStack: true}
+
 	return &KafkaStorage[types.Email]{
 		producer: NewProducer[types.Email](),
+		dialer:   dialer,
+		consumer: NewConsumer[types.Email](dialer, config.Hermes.Kafka.Topic),
 	}
 }

@@ -44,6 +44,10 @@ func (m *MemoryStorage[T]) Write(email types.Email) error {
 	return nil
 }
 
+func (m *MemoryStorage[T]) Ping() (string, error) {
+	return "Memory storage is up", nil
+}
+
 func NewMemoryStorage() types.Storage[types.Email] {
 	return &MemoryStorage[types.Email]{
 		email: make(chan types.Email, 10),

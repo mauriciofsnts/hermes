@@ -22,7 +22,6 @@ func NewProducer[T any](client redis.Client, topic string) *Producer[T] {
 }
 
 func (p *Producer[T]) Produce(value T) error {
-
 	data, err := json.Marshal(value)
 
 	if err != nil {
@@ -37,7 +36,6 @@ func (p *Producer[T]) Produce(value T) error {
 		return err
 	}
 
-	// Publish a message.
 	err = p.Client.Publish(ctx, p.Topic, data).Err()
 
 	if err != nil {
