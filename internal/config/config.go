@@ -1,12 +1,12 @@
 package config
 
 type Config struct {
-	DefaultFrom   string
-	AllowedOrigin string
-	Location      string
-	Redis         Redis
-	Kafka         Kafka
-	Smtp          Smtp
+	DefaultFrom    string
+	AllowedOrigins []string
+	Location       string
+	Redis          Redis
+	Kafka          Kafka
+	Smtp           Smtp
 }
 
 type Redis struct {

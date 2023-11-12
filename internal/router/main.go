@@ -1,10 +1,13 @@
 package router
 
 import (
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/controller"
 	"github.com/mauriciofsnts/hermes/internal/types"
 	"github.com/pauloo27/logger"
@@ -25,7 +28,14 @@ func CreateFiberInstance(storage types.Storage[types.Email]) *fiber.App {
 		Expiration: 30 * time.Second,
 	}))
 
-	app.Use(Origin())
+	allowedOrigins := config.Hermes.AllowedOrigins
+
+	logger.Infof("Allowed origins: %s", strings.Join(allowedOrigins, ","))
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: strings.Join(allowedOrigins, ","),
+		AllowMethods: "POSt,GET,OPTIONS",
+	}))
 
 	return app
 }
