@@ -143,7 +143,7 @@ You can check all the available configurations in the [config_example.yml]() fil
 
 ---
 
-### 🔧 Installation
+## 🔧 Installation
 
 1. Clone the hermes repository:
 
