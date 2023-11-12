@@ -13,13 +13,13 @@ import (
 	"github.com/pauloo27/logger"
 )
 
-const storageKeyName = "storage"
+const storageKey = "storage"
 
 func CreateFiberInstance(storage types.Storage[types.Email]) *fiber.App {
 	app := fiber.New()
 
 	app.Use(func(c *fiber.Ctx) error {
-		c.Locals(storageKeyName, storage)
+		c.Locals(storageKey, storage)
 		return c.Next()
 	})
 
@@ -29,12 +29,19 @@ func CreateFiberInstance(storage types.Storage[types.Email]) *fiber.App {
 	}))
 
 	allowedOrigins := config.Hermes.AllowedOrigins
+	var parsedOrigin string
 
-	logger.Infof("Allowed origins: %s", strings.Join(allowedOrigins, ","))
+	if len(allowedOrigins) == 0 {
+		parsedOrigin = "*"
+	} else {
+		parsedOrigin = strings.Join(allowedOrigins, ",")
+	}
+
+	logger.Infof("Allowed origins: %s", parsedOrigin)
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: strings.Join(allowedOrigins, ","),
-		AllowMethods: "POSt,GET,OPTIONS",
+		AllowOrigins: parsedOrigin,
+		AllowMethods: "POST,GET,OPTIONS",
 	}))
 
 	return app

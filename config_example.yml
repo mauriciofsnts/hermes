@@ -1,5 +1,5 @@
 defaultFrom: string
-allowedOrigin: string
+allowedOrigins: string
 location: templates
 
 redis:
