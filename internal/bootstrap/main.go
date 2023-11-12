@@ -6,10 +6,10 @@ import (
 	"syscall"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/mauriciofsnts/hermes/internal/api/router"
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/router"
 	"github.com/mauriciofsnts/hermes/internal/storage"
-	"github.com/mauriciofsnts/hermes/internal/worker"
+	"github.com/mauriciofsnts/hermes/internal/storage/worker"
 	"github.com/pauloo27/logger"
 )
 
