@@ -1,5 +1,7 @@
 defaultFrom: string
 allowedOrigins: string
+rateLimit: int
+
 location: templates
 
 redis:

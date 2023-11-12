@@ -24,7 +24,7 @@ func CreateFiberInstance(storage types.Storage[types.Email]) *fiber.App {
 	})
 
 	app.Use(limiter.New(limiter.Config{
-		Max:        115,
+		Max:        config.Hermes.RateLimit,
 		Expiration: 30 * time.Second,
 	}))
 

@@ -7,6 +7,7 @@ type Config struct {
 	Redis          Redis
 	Kafka          Kafka
 	Smtp           Smtp
+	RateLimit      int
 }
 
 type Redis struct {
