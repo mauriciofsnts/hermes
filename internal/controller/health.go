@@ -17,12 +17,12 @@ func NewHealthController() *healthController {
 }
 
 func (h *healthController) Health(c *fiber.Ctx) error {
-	storage := c.Locals("storage").(types.Storage[types.Email])
+	queue := c.Locals("queue").(types.Queue[types.Email])
 
-	ping, err := storage.Ping()
+	ping, err := queue.Ping()
 
 	if err != nil {
-		return api.Err(c, fiber.StatusInternalServerError, "failed to ping storage", err)
+		return api.Err(c, fiber.StatusInternalServerError, "Queue is not available", err)
 	}
 
 	return api.Success(c, fiber.StatusOK, ping)

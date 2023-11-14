@@ -22,10 +22,10 @@ func NewEmailController() *emailControler {
 }
 
 func (e *emailControler) SendEmail(c *fiber.Ctx) error {
-	storage := c.Locals("storage").(types.Storage[types.Email])
+	queue := c.Locals("queue").(types.Queue[types.Email])
 
-	if storage == nil {
-		return api.Err(c, fiber.StatusInternalServerError, "Failed to send email: storage is nil", nil)
+	if queue == nil {
+		return api.Err(c, fiber.StatusInternalServerError, "Queue is nil", nil)
 	}
 
 	email, err := e.Validation(c)
@@ -34,7 +34,7 @@ func (e *emailControler) SendEmail(c *fiber.Ctx) error {
 		return api.Err(c, fiber.StatusBadRequest, "Failed to send email: invalid request body", err)
 	}
 
-	err = storage.Write(*email)
+	err = queue.Write(*email)
 
 	if err != nil {
 		return api.Err(c, fiber.StatusInternalServerError, "Failed to send email", err)

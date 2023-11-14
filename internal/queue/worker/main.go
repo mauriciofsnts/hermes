@@ -8,11 +8,11 @@ import (
 
 var cancel context.CancelFunc
 
-func StartWorker(storage types.Storage[types.Email]) {
+func StartWorker(queue types.Queue[types.Email]) {
 	var ctx context.Context
 
 	ctx, cancel = context.WithCancel(context.Background())
-	go storage.Read(ctx)
+	go queue.Read(ctx)
 }
 
 func StopWorker() {

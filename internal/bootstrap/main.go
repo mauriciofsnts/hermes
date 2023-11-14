@@ -8,8 +8,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/mauriciofsnts/hermes/internal/api/router"
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/storage"
-	"github.com/mauriciofsnts/hermes/internal/storage/worker"
+	"github.com/mauriciofsnts/hermes/internal/queue"
+	"github.com/mauriciofsnts/hermes/internal/queue/worker"
 	"github.com/pauloo27/logger"
 )
 
@@ -17,10 +17,10 @@ func Start() {
 	logger.Debug("Starting Hermes...")
 	logger.HandleFatal(config.LoadConfig(), "Failed to load config")
 
-	storage := storage.NewStorage()
+	q := queue.NewQueue()
 
-	go worker.StartWorker(storage)
-	app := router.CreateFiberInstance(storage)
+	go worker.StartWorker(q)
+	app := router.CreateFiberInstance(q)
 
 	go onShutdown(app)
 	logger.HandleFatal(router.Listen(app), "Failed to start HTTP server")

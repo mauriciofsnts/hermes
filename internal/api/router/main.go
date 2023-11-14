@@ -13,13 +13,13 @@ import (
 	"github.com/pauloo27/logger"
 )
 
-const storageKey = "storage"
+const queueKey = "queue"
 
-func CreateFiberInstance(storage types.Storage[types.Email]) *fiber.App {
+func CreateFiberInstance(queue types.Queue[types.Email]) *fiber.App {
 	app := fiber.New()
 
 	app.Use(func(c *fiber.Ctx) error {
-		c.Locals(storageKey, storage)
+		c.Locals(queueKey, queue)
 		return c.Next()
 	})
 

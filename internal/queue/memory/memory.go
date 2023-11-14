@@ -13,15 +13,15 @@ type ReadData[T any] struct {
 	Err  error
 }
 
-type MemoryStorage[T any] struct {
+type MemoryQueue[T any] struct {
 	email chan types.Email
 }
 
-func (m *MemoryStorage[T]) Read(ctx context.Context) {
+func (m *MemoryQueue[T]) Read(ctx context.Context) {
 	logger.Info("Reading emails from memory")
 
 	for {
-		logger.Info("Waiting for emails", m.email)
+		logger.Info("Waiting for emails")
 		select {
 		case <-ctx.Done():
 			// TODO! graceful shutdown
@@ -39,17 +39,17 @@ func (m *MemoryStorage[T]) Read(ctx context.Context) {
 
 }
 
-func (m *MemoryStorage[T]) Write(email types.Email) error {
+func (m *MemoryQueue[T]) Write(email types.Email) error {
 	m.email <- email
 	return nil
 }
 
-func (m *MemoryStorage[T]) Ping() (string, error) {
-	return "Memory storage is up", nil
+func (m *MemoryQueue[T]) Ping() (string, error) {
+	return "Memory queue is up", nil
 }
 
-func NewMemoryStorage() types.Storage[types.Email] {
-	return &MemoryStorage[types.Email]{
+func NewMemoryQueue() types.Queue[types.Email] {
+	return &MemoryQueue[types.Email]{
 		email: make(chan types.Email, 10),
 	}
 }

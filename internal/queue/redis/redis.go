@@ -18,12 +18,12 @@ func NewRedisClient() *redis.Client {
 	})
 }
 
-type RedisStorage[T any] struct {
+type RedisQueue[T any] struct {
 	client   *redis.Client
 	consumer *Consumer[types.Email]
 }
 
-func (r *RedisStorage[T]) Read(ctx context.Context) {
+func (r *RedisQueue[T]) Read(ctx context.Context) {
 	logger.Info("Starting Redis consumer...")
 
 	r.consumer = NewConsumer[types.Email](r.client, config.Hermes.Redis.Topic)
@@ -50,7 +50,7 @@ func (r *RedisStorage[T]) Read(ctx context.Context) {
 
 }
 
-func (r *RedisStorage[T]) Write(email types.Email) error {
+func (r *RedisQueue[T]) Write(email types.Email) error {
 	producer := NewProducer[types.Email](
 		*r.client,
 		config.Hermes.Redis.Topic,
@@ -67,7 +67,7 @@ func (r *RedisStorage[T]) Write(email types.Email) error {
 	return nil
 }
 
-func (r *RedisStorage[T]) Ping() (string, error) {
+func (r *RedisQueue[T]) Ping() (string, error) {
 	_, err := r.client.Ping(ctx).Result()
 
 	if err != nil {
@@ -78,10 +78,10 @@ func (r *RedisStorage[T]) Ping() (string, error) {
 	return "Redis is up", nil
 }
 
-func NewRedisStorage() types.Storage[types.Email] {
+func NewRedisQueue() types.Queue[types.Email] {
 	client := NewRedisClient()
 
-	return &RedisStorage[types.Email]{
+	return &RedisQueue[types.Email]{
 		client:   client,
 		consumer: NewConsumer[types.Email](client, config.Hermes.Redis.Topic),
 	}
