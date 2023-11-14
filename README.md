@@ -133,7 +133,6 @@ The following environment variables are required to run this service:
 | ------------- | --------------------------------------------------------- |
 | defaultFrom   | The default email address to use as the sender of emails. |
 | allowedOrigin | A list of allowed origins for CORS.                       |
-| location      | The folder where the templates will be saved              |
 | smtp.host     | The SMTP server host.                                     |
 | smtp.port     | The SMTP server port.                                     |
 | smtp.username | The SMTP server username.                                 |

@@ -2,8 +2,6 @@ package template
 
 import (
 	"os"
-
-	"github.com/mauriciofsnts/hermes/internal/config"
 )
 
 type TemplateService interface {
@@ -38,5 +36,5 @@ func (t *templateService) Create(name string, content []byte) error {
 }
 
 func getPath(name string) string {
-	return config.Hermes.Location + "/" + name + ".html"
+	return "templates/" + name + ".html"
 }

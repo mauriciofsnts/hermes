@@ -1,8 +1,8 @@
 defaultFrom: string
-allowedOrigins: string
+allowedOrigins: 
+  - string
+  - string
 rateLimit: int
-
-location: templates
 
 redis:
   host: localhost
