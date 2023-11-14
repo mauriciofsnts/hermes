@@ -21,7 +21,7 @@ type KafkaStorage[T any] struct {
 func (k *KafkaStorage[T]) Read(ctx context.Context) {
 	logger.Info("Starting Kafka consumer...")
 
-	readCh := make(chan ReadData[types.Email], 10)
+	readCh := make(chan ReadData[types.Email])
 
 	go k.consumer.Read(readCh)
 
