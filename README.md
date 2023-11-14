@@ -139,7 +139,7 @@ The following environment variables are required to run this service:
 | smtp.username | The SMTP server username.                                 |
 | smtp.password | The SMTP server password.                                 |
 
-You can check all the available configurations in the [config_example.yml]() file.
+You can check all the available configurations in the [config_example.yml](https://github.com/mauriciofsnts/hermes/blob/master/config_example.yml) file.
 
 ---
 
