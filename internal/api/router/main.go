@@ -7,8 +7,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/mauriciofsnts/hermes/internal/api/controller"
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/controller"
 	"github.com/mauriciofsnts/hermes/internal/types"
 	"github.com/pauloo27/logger"
 )
