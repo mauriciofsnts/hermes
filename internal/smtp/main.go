@@ -5,8 +5,8 @@ import (
 	"net/smtp"
 	"strings"
 
+	"github.com/mauriciofsnts/hermes/internal/api/controller"
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/controller"
 	"github.com/mauriciofsnts/hermes/internal/types"
 	"github.com/pauloo27/logger"
 )
