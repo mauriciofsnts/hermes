@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/mauriciofsnts/hermes/internal/config"
+	"github.com/mauriciofsnts/hermes/internal/types"
 	kafkaGo "github.com/segmentio/kafka-go"
 )
 
@@ -27,17 +28,12 @@ func NewConsumer[T any](dialer *kafkaGo.Dialer, topic string) *Consumer[T] {
 	}
 }
 
-type ReadData[T any] struct {
-	Data *T
-	Err  error
-}
-
-func (c *Consumer[T]) Read(ch chan<- ReadData[T]) {
+func (c *Consumer[T]) Read(ch chan<- types.ReadData[T]) {
 	for {
 		message, err := c.reader.ReadMessage(context.Background())
 
 		if err != nil {
-			ch <- ReadData[T]{nil, err}
+			ch <- types.ReadData[T]{nil, err}
 			continue
 		}
 
@@ -46,11 +42,11 @@ func (c *Consumer[T]) Read(ch chan<- ReadData[T]) {
 		err = json.Unmarshal(message.Value, &model)
 
 		if err != nil {
-			ch <- ReadData[T]{nil, err}
+			ch <- types.ReadData[T]{nil, err}
 			continue
 		}
 
-		ch <- ReadData[T]{&model, nil}
+		ch <- types.ReadData[T]{&model, nil}
 	}
 }
 

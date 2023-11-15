@@ -3,6 +3,7 @@ package redis
 import (
 	"encoding/json"
 
+	"github.com/mauriciofsnts/hermes/internal/types"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -18,19 +19,14 @@ func NewConsumer[T any](client *redis.Client, topic string) *Consumer[T] {
 	}
 }
 
-type ReadData[T any] struct {
-	Data *T
-	Err  error
-}
-
-func (c *Consumer[T]) Read(ch chan<- ReadData[T]) {
+func (c *Consumer[T]) Read(ch chan<- types.ReadData[T]) {
 	pubsub := c.Client.Subscribe(ctx, c.Topic)
 
 	for {
 		msg, err := pubsub.ReceiveMessage(ctx)
 
 		if err != nil {
-			ch <- ReadData[T]{nil, err}
+			ch <- types.ReadData[T]{nil, err}
 			continue
 		}
 
@@ -39,11 +35,11 @@ func (c *Consumer[T]) Read(ch chan<- ReadData[T]) {
 		err = json.Unmarshal([]byte(msg.Payload), &model)
 
 		if err != nil {
-			ch <- ReadData[T]{nil, err}
+			ch <- types.ReadData[T]{nil, err}
 			continue
 		}
 
-		ch <- ReadData[T]{&model, nil}
+		ch <- types.ReadData[T]{&model, nil}
 	}
 
 }

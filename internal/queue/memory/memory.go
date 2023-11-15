@@ -8,11 +8,6 @@ import (
 	"github.com/pauloo27/logger"
 )
 
-type ReadData[T any] struct {
-	Data *T
-	Err  error
-}
-
 type MemoryQueue[T any] struct {
 	email chan types.Email
 }

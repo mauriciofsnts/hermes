@@ -28,7 +28,7 @@ func (r *RedisQueue[T]) Read(ctx context.Context) {
 
 	r.consumer = NewConsumer[types.Email](r.client, config.Hermes.Redis.Topic)
 
-	readCh := make(chan ReadData[types.Email])
+	readCh := make(chan types.ReadData[types.Email])
 
 	go r.consumer.Read(readCh)
 

@@ -21,7 +21,7 @@ type KakfaQueue[T any] struct {
 func (k *KakfaQueue[T]) Read(ctx context.Context) {
 	logger.Info("Starting Kafka consumer...")
 
-	readCh := make(chan ReadData[types.Email])
+	readCh := make(chan types.ReadData[types.Email])
 
 	go k.consumer.Read(readCh)
 

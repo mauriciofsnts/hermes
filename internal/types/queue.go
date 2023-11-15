@@ -7,3 +7,8 @@ type Queue[T any] interface {
 	Write(T) error
 	Ping() (string, error)
 }
+
+type ReadData[T any] struct {
+	Data *T
+	Err  error
+}
