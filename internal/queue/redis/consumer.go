@@ -26,7 +26,7 @@ func (c *Consumer[T]) Read(ch chan<- types.ReadData[T]) {
 		msg, err := pubsub.ReceiveMessage(ctx)
 
 		if err != nil {
-			ch <- types.ReadData[T]{nil, err}
+			ch <- types.ReadData[T]{Data: nil, Err: err}
 			continue
 		}
 
@@ -35,11 +35,11 @@ func (c *Consumer[T]) Read(ch chan<- types.ReadData[T]) {
 		err = json.Unmarshal([]byte(msg.Payload), &model)
 
 		if err != nil {
-			ch <- types.ReadData[T]{nil, err}
+			ch <- types.ReadData[T]{Data: nil, Err: err}
 			continue
 		}
 
-		ch <- types.ReadData[T]{&model, nil}
+		ch <- types.ReadData[T]{Data: &model, Err: nil}
 	}
 
 }
