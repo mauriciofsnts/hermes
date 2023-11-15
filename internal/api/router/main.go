@@ -54,11 +54,13 @@ func Listen(app *fiber.App) error {
 	emailController := controller.NewEmailController()
 	templateController := controller.NewTemplateController()
 
-	app.Post("/api/send-email", emailController.SendEmail)
-	app.Get("/api/health", healthController.Health)
+	api := app.Group("/api")
 
-	app.Get("/api/templates/:slug/raw", templateController.GetRaw)
-	app.Post("/api/templates", templateController.Create)
+	api.Post("/send-email", emailController.SendEmail)
+	api.Get("/health", healthController.Health)
+
+	api.Get("/templates/:slug/raw", templateController.GetRaw)
+	api.Post("/templates", templateController.Create)
 
 	return app.Listen(":8082")
 }
