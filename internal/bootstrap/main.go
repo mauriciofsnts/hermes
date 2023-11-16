@@ -9,7 +9,6 @@ import (
 	"github.com/mauriciofsnts/hermes/internal/api/router"
 	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/queue"
-	"github.com/mauriciofsnts/hermes/internal/queue/worker"
 	"github.com/pauloo27/logger"
 )
 
@@ -19,7 +18,7 @@ func Start() {
 
 	q := queue.NewQueue()
 
-	go worker.StartWorker(q)
+	go queue.StartWorker(q)
 	app := router.CreateFiberInstance(q)
 
 	go onShutdown(app)
@@ -33,7 +32,7 @@ func onShutdown(app *fiber.App) {
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGKILL)
 	<-stop
 
-	worker.StopWorker()
+	queue.StopWorker()
 	app.Shutdown()
 	os.Exit(0)
 }
