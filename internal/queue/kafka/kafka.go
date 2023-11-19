@@ -2,13 +2,13 @@ package kafka
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/smtp"
 	"github.com/mauriciofsnts/hermes/internal/types"
-	"github.com/pauloo27/logger"
 	kafkaGo "github.com/segmentio/kafka-go"
 )
 
@@ -19,7 +19,7 @@ type KakfaQueue[T any] struct {
 }
 
 func (k *KakfaQueue[T]) Read(ctx context.Context) {
-	logger.Info("Starting Kafka consumer...")
+	slog.Info("Starting Kafka consumer...")
 
 	readCh := make(chan types.ReadData[types.Email])
 
@@ -28,12 +28,13 @@ func (k *KakfaQueue[T]) Read(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			logger.Info("Stopping Kafka consumer...")
+			slog.Info("Stopping Kafka consumer...")
+
 			k.consumer.Close()
 			return
 		case data := <-readCh:
 			if data.Err != nil {
-				logger.Error("Failed to read content", data.Err)
+				slog.Error("Failed to read content", data.Err)
 				continue
 			}
 
@@ -47,7 +48,7 @@ func (k *KakfaQueue[T]) Write(content T) error {
 	err := k.producer.Produce(uuid.New().String(), content, config.Hermes.Kafka.Topic)
 
 	if err != nil {
-		logger.Error("Failed to produce content", err)
+		slog.Error("Failed to produce content", err)
 		return err
 	}
 
@@ -58,7 +59,7 @@ func (k *KakfaQueue[T]) Ping() (string, error) {
 	conn, err := k.dialer.DialLeader(context.Background(), "tcp", config.Hermes.Kafka.Host, config.Hermes.Kafka.Topic, 0)
 
 	if err != nil {
-		logger.Error("Failed to connect to Kafka", err)
+		slog.Error("Failed to connect to Kafka", err)
 		return "", err
 	}
 

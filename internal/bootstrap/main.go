@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -9,12 +10,16 @@ import (
 	"github.com/mauriciofsnts/hermes/internal/api/router"
 	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/queue"
-	"github.com/pauloo27/logger"
 )
 
 func Start() {
-	logger.Debug("Starting Hermes...")
-	logger.HandleFatal(config.LoadConfig(), "Failed to load config")
+	err := config.LoadConfig()
+
+	if err != nil {
+		slog.Error("Failed to load envs: " + err.Error())
+	}
+
+	SetupLog()
 
 	q := queue.NewQueue()
 
@@ -22,8 +27,12 @@ func Start() {
 	app := router.CreateFiberInstance(q)
 
 	go onShutdown(app)
-	logger.HandleFatal(router.Listen(app), "Failed to start HTTP server")
 
+	err = router.Listen(app)
+
+	if err != nil {
+		slog.Error("Failed to start HTTP server: " + err.Error())
+	}
 }
 
 func onShutdown(app *fiber.App) {

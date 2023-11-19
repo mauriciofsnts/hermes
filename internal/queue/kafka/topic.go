@@ -2,9 +2,9 @@ package kafka
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/pauloo27/logger"
 	kafkaGo "github.com/segmentio/kafka-go"
 )
 
@@ -14,7 +14,7 @@ func CreateTopic() error {
 	connection, err := kafkaGo.Dial("tcp", fmt.Sprintf("%s:%d", config.Hermes.Kafka.Host, config.Hermes.Kafka.Port))
 
 	if err != nil {
-		logger.Error("Failed to connect to Kafka", err)
+		slog.Error("Failed to connect to Kafka", err)
 		return err
 	}
 
@@ -31,7 +31,7 @@ func CreateTopic() error {
 	err = connection.CreateTopics(topics...)
 
 	if err != nil {
-		logger.Error("Failed to create topic", err)
+		slog.Error("Failed to create topic", err)
 		return err
 	}
 

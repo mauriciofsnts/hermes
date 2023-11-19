@@ -2,17 +2,17 @@ package smtp
 
 import (
 	"fmt"
+	"log/slog"
 	"net/smtp"
 	"strings"
 
 	"github.com/mauriciofsnts/hermes/internal/api/controller"
 	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/types"
-	"github.com/pauloo27/logger"
 )
 
 func SendEmail(email *types.Email) error {
-	logger.Info("Sending email...")
+	slog.Info("Sending email...")
 	request, err := buildMail(*email)
 
 	if err != nil {

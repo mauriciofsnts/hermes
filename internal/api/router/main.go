@@ -1,6 +1,7 @@
 package router
 
 import (
+	"log/slog"
 	"strings"
 	"time"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/mauriciofsnts/hermes/internal/api/controller"
 	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/types"
-	"github.com/pauloo27/logger"
 )
 
 const queueKey = "queue"
@@ -37,8 +37,6 @@ func CreateFiberInstance(queue types.Queue[types.Email]) *fiber.App {
 		parsedOrigin = strings.Join(allowedOrigins, ",")
 	}
 
-	logger.Infof("Allowed origins: %s", parsedOrigin)
-
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: parsedOrigin,
 		AllowMethods: "POST,GET,OPTIONS",
@@ -48,7 +46,7 @@ func CreateFiberInstance(queue types.Queue[types.Email]) *fiber.App {
 }
 
 func Listen(app *fiber.App) error {
-	logger.Debug("Starting HTTP server...")
+	slog.Info("Starting HTTP server...")
 
 	healthController := controller.NewHealthController()
 	emailController := controller.NewEmailController()
