@@ -5,7 +5,7 @@ type Config struct {
 	AllowedOrigins []string
 	Redis          Redis
 	Kafka          Kafka
-	Smtp           Smtp
+	SMTP           SMTP
 	RateLimit      int
 }
 
@@ -25,7 +25,7 @@ type Kafka struct {
 	Brokers []string
 }
 
-type Smtp struct {
+type SMTP struct {
 	Host     string
 	Port     int
 	Username string

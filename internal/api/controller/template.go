@@ -11,23 +11,23 @@ import (
 	"github.com/mauriciofsnts/hermes/internal/template"
 )
 
-type TemplateController interface {
+type TemplateControllerInterface interface {
 	Create(c *fiber.Ctx) (string, error)
 	Delete(c *fiber.Ctx) error
 	ParseTemplate(name string, content map[string]any) (*bytes.Buffer, error)
 }
 
-type templateController struct {
+type TemplateController struct {
 	templateService template.TemplateService
 }
 
-func NewTemplateController() *templateController {
-	return &templateController{
+func NewTemplateController() *TemplateController {
+	return &TemplateController{
 		templateService: template.NewTemplateService(),
 	}
 }
 
-func (c *templateController) Create(ctx *fiber.Ctx) error {
+func (c *TemplateController) Create(ctx *fiber.Ctx) error {
 	payload := struct {
 		Content string `json:"content"`
 		Name    string `json:"name"`
@@ -56,7 +56,7 @@ func (c *templateController) Create(ctx *fiber.Ctx) error {
 	return api.Success(ctx, fiber.StatusCreated, "template created successfully")
 }
 
-func (c *templateController) GetRaw(ctx *fiber.Ctx) error {
+func (c *TemplateController) GetRaw(ctx *fiber.Ctx) error {
 	id := ctx.Params("slug")
 
 	if id == "" {
@@ -73,7 +73,7 @@ func (c *templateController) GetRaw(ctx *fiber.Ctx) error {
 	return ctx.Send(html)
 }
 
-func (c *templateController) ParseTemplate(name string, content map[string]any) (*bytes.Buffer, error) {
+func (c *TemplateController) ParseTemplate(name string, content map[string]any) (*bytes.Buffer, error) {
 	html, err := c.templateService.Get(name)
 
 	if err != nil {

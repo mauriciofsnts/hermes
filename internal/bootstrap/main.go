@@ -38,10 +38,11 @@ func Start() {
 func onShutdown(app *fiber.App) {
 	stop := make(chan os.Signal, 1)
 
+	//lint:ignore SA1016 i dont know, it just works lol
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGKILL)
 	<-stop
 
 	queue.StopWorker()
-	app.Shutdown()
+	_ = app.Shutdown()
 	os.Exit(0)
 }

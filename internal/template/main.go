@@ -32,7 +32,7 @@ func (t *templateService) Delete(name string) error {
 }
 
 func (t *templateService) Create(name string, content []byte) error {
-	return os.WriteFile(getPath(name), content, 0644)
+	return os.WriteFile(getPath(name), content, 0600)
 }
 
 func getPath(name string) string {

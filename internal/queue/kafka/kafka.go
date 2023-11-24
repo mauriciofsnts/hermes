@@ -30,7 +30,7 @@ func (k *KakfaQueue[T]) Read(ctx context.Context) {
 		case <-ctx.Done():
 			slog.Info("Stopping Kafka consumer...")
 
-			k.consumer.Close()
+			_ = k.consumer.Close()
 			return
 		case data := <-readCh:
 			if data.Err != nil {
@@ -38,7 +38,12 @@ func (k *KakfaQueue[T]) Read(ctx context.Context) {
 				continue
 			}
 
-			smtp.SendEmail(data.Data)
+			err := smtp.SendEmail(data.Data)
+
+			if err != nil {
+				slog.Error("Failed to send email", err)
+				continue
+			}
 		}
 	}
 
@@ -63,7 +68,7 @@ func (k *KakfaQueue[T]) Ping() (string, error) {
 		return "", err
 	}
 
-	conn.Close()
+	_ = conn.Close()
 	return "Kafka is up", nil
 }
 

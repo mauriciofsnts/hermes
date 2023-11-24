@@ -26,3 +26,24 @@ tidy:
 .PHONY: dev
 dev:
 	air
+
+.PHONY: lint
+lint:
+	revive -formatter friendly -config revive.toml ./...
+
+.PHONY: staticcheck
+staticcheck:
+	staticcheck ./...
+
+.PHONY: gosec
+gosec:
+	gosec -tests ./... 
+
+.PHONY: inspect
+inspect: lint gosec staticcheck
+
+.PHONY: install-inspect-tools
+install-inspect-tools:
+	go install github.com/mgechev/revive@latest
+	go install honnef.co/go/tools/cmd/staticcheck@latest
+	go install github.com/securego/gosec/v2/cmd/gosec@latest

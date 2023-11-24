@@ -22,7 +22,7 @@ func SendEmail(email *types.Email) error {
 	var msg string
 
 	if request.Type == types.HTML {
-		msg = buildHtmlMessage(*request)
+		msg = buildHTMLMessage(*request)
 	} else {
 		msg = buildTextMessage(*request)
 	}
@@ -40,11 +40,11 @@ func SendEmail(email *types.Email) error {
 }
 
 func getAddr() string {
-	return fmt.Sprintf("%s:%d", config.Hermes.Smtp.Host, config.Hermes.Smtp.Port)
+	return fmt.Sprintf("%s:%d", config.Hermes.SMTP.Host, config.Hermes.SMTP.Port)
 }
 
 func getAuth() smtp.Auth {
-	return smtp.PlainAuth("", config.Hermes.Smtp.Username, config.Hermes.Smtp.Password, config.Hermes.Smtp.Host)
+	return smtp.PlainAuth("", config.Hermes.SMTP.Username, config.Hermes.SMTP.Password, config.Hermes.SMTP.Host)
 }
 
 func buildMail(email types.Email) (*types.Mail, error) {
@@ -82,7 +82,7 @@ func buildMail(email types.Email) (*types.Mail, error) {
 	return nil, fmt.Errorf("invalid email content")
 }
 
-func buildHtmlMessage(mail types.Mail) string {
+func buildHTMLMessage(mail types.Mail) string {
 	msg := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\r\n"
 	msg += fmt.Sprintf("From: %s\r\n", mail.Sender)
 	msg += fmt.Sprintf("To: %s\r\n", strings.Join(mail.To, ";"))

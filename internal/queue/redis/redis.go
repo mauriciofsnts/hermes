@@ -36,7 +36,7 @@ func (r *RedisQueue[T]) Read(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			slog.Info("Stopping redis consumer...")
-			r.consumer.Close()
+			_ = r.consumer.Close()
 			return
 		case data := <-readCh:
 			if data.Err != nil {
@@ -44,7 +44,12 @@ func (r *RedisQueue[T]) Read(ctx context.Context) {
 				continue
 			}
 
-			smtp.SendEmail(data.Data)
+			err := smtp.SendEmail(data.Data)
+
+			if err != nil {
+				slog.Error("Failed to send email", err)
+				continue
+			}
 		}
 	}
 
@@ -63,7 +68,6 @@ func (r *RedisQueue[T]) Write(email types.Email) error {
 		return err
 	}
 
-	slog.Info("Email produced", email)
 	return nil
 }
 

@@ -25,14 +25,13 @@ func NewQueue() types.Queue[types.Email] {
 		}
 
 		queue = kafka.NewKafkaQueue()
-		return queue
 	} else if redisEnabled {
 		queue = redis.NewRedisQueue()
-		return queue
 	} else {
 		queue = memory.NewMemoryQueue()
-		return queue
 	}
+
+	return queue
 }
 
 func StartWorker(queue types.Queue[types.Email]) {

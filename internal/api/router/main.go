@@ -54,7 +54,7 @@ func Listen(app *fiber.App) error {
 
 	api := app.Group("/api")
 
-	api.Post("/send-email", emailController.SendEmail)
+	api.Post("/send", emailController.SendEmail)
 	api.Get("/health", healthController.Health)
 
 	api.Get("/templates/:slug/raw", templateController.GetRaw)

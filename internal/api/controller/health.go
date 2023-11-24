@@ -6,17 +6,17 @@ import (
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
 
-type HealthController interface {
+type HealthControllerInterface interface {
 	Health(c *fiber.Ctx) error
 }
 
-type healthController struct{}
+type HealthController struct{}
 
-func NewHealthController() *healthController {
-	return &healthController{}
+func NewHealthController() *HealthController {
+	return &HealthController{}
 }
 
-func (h *healthController) Health(c *fiber.Ctx) error {
+func (h *HealthController) Health(c *fiber.Ctx) error {
 	queue := c.Locals("queue").(types.Queue[types.Email])
 
 	ping, err := queue.Ping()

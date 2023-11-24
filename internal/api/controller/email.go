@@ -10,18 +10,18 @@ import (
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
 
-type EmailController interface {
+type EmailControllerInterface interface {
 	SendEmail(c *fiber.Ctx) error
 }
 
-type emailControler struct {
+type EmailControler struct {
 }
 
-func NewEmailController() *emailControler {
-	return &emailControler{}
+func NewEmailController() *EmailControler {
+	return &EmailControler{}
 }
 
-func (e *emailControler) SendEmail(c *fiber.Ctx) error {
+func (e *EmailControler) SendEmail(c *fiber.Ctx) error {
 	queue := c.Locals("queue").(types.Queue[types.Email])
 
 	if queue == nil {
@@ -43,7 +43,7 @@ func (e *emailControler) SendEmail(c *fiber.Ctx) error {
 	return api.Success(c, fiber.StatusOK, "Email sent successfully")
 }
 
-func (e *emailControler) Validation(c *fiber.Ctx) (*types.Email, error) {
+func (e *EmailControler) Validation(c *fiber.Ctx) (*types.Email, error) {
 	payload := c.Body()
 
 	if payload == nil {
