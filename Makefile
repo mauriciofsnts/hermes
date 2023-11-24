@@ -22,7 +22,7 @@ test:
 tidy:
 	go mod tidy
 
-# auto restart bot (using fiber CLI <3)
+# auto restart
 .PHONY: dev
 dev:
-	fiber dev -t ./cmd/$(BINARY_NAME)
+	air
