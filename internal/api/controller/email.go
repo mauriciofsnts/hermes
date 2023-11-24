@@ -60,8 +60,19 @@ func (e *EmailControler) Validation(c *fiber.Ctx) (*types.Email, error) {
 		return nil, errors.New("at least one of the fields 'body' or 'templateName' must be filled")
 	}
 
-	if email.TemplateName != "" && len(email.Content) < 1 {
-		return nil, errors.New("if the field 'templateName' is filled, the field 'content' must be filled")
+	if email.TemplateName != "" {
+
+		if (email.Content == nil || len(email.Content) < 1) && email.Body == "" {
+			return nil, errors.New("if the field 'templateName' is filled, the field 'content' must be filled")
+		}
+
+		controller := NewTemplateController()
+
+		_, err := controller.ParseTemplate(email.TemplateName, email.Content)
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return email, nil
