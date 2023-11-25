@@ -9,6 +9,7 @@ import (
 
 	"github.com/mauriciofsnts/hermes/internal/api"
 	"github.com/mauriciofsnts/hermes/internal/config"
+	"github.com/mauriciofsnts/hermes/internal/template"
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
 
@@ -19,12 +20,14 @@ type EmailControllerInterface interface {
 
 type EmailControler struct {
 	EmailControllerInterface
-	validate *validator.Validate
+	validate        *validator.Validate
+	templateService template.TemplateServiceInterface
 }
 
 func NewEmailController() *EmailControler {
 	return &EmailControler{
-		validate: validator.New(),
+		validate:        validator.New(),
+		templateService: template.NewTemplateService(),
 	}
 }
 
@@ -76,9 +79,7 @@ func (e *EmailControler) SendTemplateEmail(ctx *fiber.Ctx) error {
 		return api.Err(ctx, fiber.StatusBadRequest, "Invalid body", err)
 	}
 
-	templateController := NewTemplateController()
-
-	template, err := templateController.ParseTemplate(templateName, templateEmail.Data)
+	template, err := e.templateService.ParseTemplate(templateName, templateEmail.Data)
 
 	if err != nil {
 		return api.Err(ctx, fiber.StatusInternalServerError, "Error parsing template", err)

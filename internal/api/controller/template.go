@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"encoding/base64"
 
-	tmpl "html/template"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/mauriciofsnts/hermes/internal/api"
 	"github.com/mauriciofsnts/hermes/internal/template"
@@ -18,7 +16,7 @@ type TemplateControllerInterface interface {
 }
 
 type TemplateController struct {
-	templateService template.TemplateService
+	templateService template.TemplateServiceInterface
 }
 
 func NewTemplateController() *TemplateController {
@@ -71,27 +69,4 @@ func (c *TemplateController) GetRaw(ctx *fiber.Ctx) error {
 
 	ctx.Context().SetContentType("text/html")
 	return ctx.Send(html)
-}
-
-func (c *TemplateController) ParseTemplate(name string, content map[string]any) (*bytes.Buffer, error) {
-	html, err := c.templateService.Get(name)
-
-	if err != nil {
-		return nil, err
-	}
-
-	htmlTmpl, err := tmpl.New(name).Parse(string(html))
-
-	if err != nil {
-		return nil, err
-	}
-
-	buff := bytes.NewBufferString("")
-	err = htmlTmpl.Option("missingkey=error").Execute(buff, content)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return buff, nil
 }
