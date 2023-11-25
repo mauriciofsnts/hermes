@@ -17,7 +17,7 @@ func NewHealthController() *HealthController {
 }
 
 func (h *HealthController) Health(c *fiber.Ctx) error {
-	queue := c.Locals("queue").(types.Queue[types.Email])
+	queue := c.Locals("queue").(types.Queue[types.Mail])
 
 	ping, err := queue.Ping()
 

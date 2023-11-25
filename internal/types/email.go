@@ -1,11 +1,15 @@
 package types
 
-type Email struct {
-	To           string         `json:"to" validate:"required"`
-	Subject      string         `json:"subject" validate:"required"`
-	Body         string         `json:"body"`
-	Content      map[string]any `json:"content"`
-	TemplateName string         `json:"templateName"`
+type PlainTextEmail struct {
+	To      string `json:"to" validate:"required"`
+	Subject string `json:"subject" validate:"required"`
+	Body    string `json:"body"`
+}
+
+type TemplateEmail struct {
+	To      string         `json:"to" validate:"required"`
+	Subject string         `json:"subject" validate:"required"`
+	Data    map[string]any `json:"data"`
 }
 
 type MailType int

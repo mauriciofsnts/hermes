@@ -10,10 +10,10 @@ import (
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
 
-var queue types.Queue[types.Email]
+var queue types.Queue[types.Mail]
 var cancel context.CancelFunc
 
-func NewQueue() types.Queue[types.Email] {
+func NewQueue() types.Queue[types.Mail] {
 	kafkaEnabled := config.Hermes.Kafka.Enabled
 	redisEnabled := config.Hermes.Redis.Enabled
 
@@ -34,7 +34,7 @@ func NewQueue() types.Queue[types.Email] {
 	return queue
 }
 
-func StartWorker(queue types.Queue[types.Email]) {
+func StartWorker(queue types.Queue[types.Mail]) {
 	var ctx context.Context
 
 	ctx, cancel = context.WithCancel(context.Background())

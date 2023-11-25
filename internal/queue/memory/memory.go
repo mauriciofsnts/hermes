@@ -9,7 +9,7 @@ import (
 )
 
 type MemoryQueue[T any] struct {
-	email chan types.Email
+	email chan types.Mail
 }
 
 func (m *MemoryQueue[T]) Read(ctx context.Context) {
@@ -34,7 +34,7 @@ func (m *MemoryQueue[T]) Read(ctx context.Context) {
 
 }
 
-func (m *MemoryQueue[T]) Write(email types.Email) error {
+func (m *MemoryQueue[T]) Write(email types.Mail) error {
 	m.email <- email
 	return nil
 }
@@ -43,8 +43,8 @@ func (m *MemoryQueue[T]) Ping() (string, error) {
 	return "Memory queue is up", nil
 }
 
-func NewMemoryQueue() types.Queue[types.Email] {
-	return &MemoryQueue[types.Email]{
-		email: make(chan types.Email, 10),
+func NewMemoryQueue() types.Queue[types.Mail] {
+	return &MemoryQueue[types.Mail]{
+		email: make(chan types.Mail, 10),
 	}
 }

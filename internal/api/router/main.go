@@ -15,7 +15,7 @@ import (
 
 const queueKey = "queue"
 
-func CreateFiberInstance(queue types.Queue[types.Email]) *fiber.App {
+func CreateFiberInstance(queue types.Queue[types.Mail]) *fiber.App {
 	app := fiber.New()
 
 	app.Use(func(c *fiber.Ctx) error {
@@ -54,8 +54,10 @@ func Listen(app *fiber.App) error {
 
 	api := app.Group("/api")
 
-	api.Post("/send", emailController.SendEmail)
 	api.Get("/health", healthController.Health)
+
+	api.Post("/send", emailController.SendPlainTextEmail)
+	api.Post("/send/:slug", emailController.SendTemplateEmail)
 
 	api.Get("/templates/:slug/raw", templateController.GetRaw)
 	api.Post("/templates", templateController.Create)

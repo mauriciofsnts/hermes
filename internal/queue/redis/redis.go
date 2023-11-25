@@ -20,15 +20,15 @@ func NewRedisClient() *redis.Client {
 
 type RedisQueue[T any] struct {
 	client   *redis.Client
-	consumer *Consumer[types.Email]
+	consumer *Consumer[types.Mail]
 }
 
 func (r *RedisQueue[T]) Read(ctx context.Context) {
 	slog.Info("Starting Redis consumer...")
 
-	r.consumer = NewConsumer[types.Email](r.client, config.Hermes.Redis.Topic)
+	r.consumer = NewConsumer[types.Mail](r.client, config.Hermes.Redis.Topic)
 
-	readCh := make(chan types.ReadData[types.Email])
+	readCh := make(chan types.ReadData[types.Mail])
 
 	go r.consumer.Read(readCh)
 
@@ -55,8 +55,8 @@ func (r *RedisQueue[T]) Read(ctx context.Context) {
 
 }
 
-func (r *RedisQueue[T]) Write(email types.Email) error {
-	producer := NewProducer[types.Email](
+func (r *RedisQueue[T]) Write(email types.Mail) error {
+	producer := NewProducer[types.Mail](
 		*r.client,
 		config.Hermes.Redis.Topic,
 	)
@@ -82,11 +82,11 @@ func (r *RedisQueue[T]) Ping() (string, error) {
 	return "Redis is up", nil
 }
 
-func NewRedisQueue() types.Queue[types.Email] {
+func NewRedisQueue() types.Queue[types.Mail] {
 	client := NewRedisClient()
 
-	return &RedisQueue[types.Email]{
+	return &RedisQueue[types.Mail]{
 		client:   client,
-		consumer: NewConsumer[types.Email](client, config.Hermes.Redis.Topic),
+		consumer: NewConsumer[types.Mail](client, config.Hermes.Redis.Topic),
 	}
 }

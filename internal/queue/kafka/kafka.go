@@ -15,13 +15,13 @@ import (
 type KakfaQueue[T any] struct {
 	producer *Producer[T]
 	dialer   *kafkaGo.Dialer
-	consumer *Consumer[types.Email]
+	consumer *Consumer[types.Mail]
 }
 
 func (k *KakfaQueue[T]) Read(ctx context.Context) {
 	slog.Info("Starting Kafka consumer...")
 
-	readCh := make(chan types.ReadData[types.Email])
+	readCh := make(chan types.ReadData[types.Mail])
 
 	go k.consumer.Read(readCh)
 
@@ -72,12 +72,12 @@ func (k *KakfaQueue[T]) Ping() (string, error) {
 	return "Kafka is up", nil
 }
 
-func NewKafkaQueue() types.Queue[types.Email] {
+func NewKafkaQueue() types.Queue[types.Mail] {
 	dialer := &kafkaGo.Dialer{Timeout: 10 * time.Second, DualStack: true}
 
-	return &KakfaQueue[types.Email]{
-		producer: NewProducer[types.Email](),
+	return &KakfaQueue[types.Mail]{
+		producer: NewProducer[types.Mail](),
 		dialer:   dialer,
-		consumer: NewConsumer[types.Email](dialer, config.Hermes.Kafka.Topic),
+		consumer: NewConsumer[types.Mail](dialer, config.Hermes.Kafka.Topic),
 	}
 }
