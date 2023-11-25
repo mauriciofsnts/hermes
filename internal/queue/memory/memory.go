@@ -16,7 +16,6 @@ func (m *MemoryQueue[T]) Read(ctx context.Context) {
 	slog.Info("Reading emails from memory")
 
 	for {
-		slog.Info("Waiting for emails")
 		select {
 		case <-ctx.Done():
 			// TODO! graceful shutdown

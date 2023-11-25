@@ -1,7 +1,6 @@
 package router
 
 import (
-	"log/slog"
 	"strings"
 	"time"
 
@@ -46,8 +45,6 @@ func CreateFiberInstance(queue types.Queue[types.Mail]) *fiber.App {
 }
 
 func Listen(app *fiber.App) error {
-	slog.Info("Starting HTTP server...")
-
 	healthController := controller.NewHealthController()
 	emailController := controller.NewEmailController()
 	templateController := controller.NewTemplateController()

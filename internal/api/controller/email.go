@@ -2,7 +2,6 @@ package controller
 
 import (
 	"errors"
-	"log/slog"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -84,8 +83,6 @@ func (e *EmailControler) SendTemplateEmail(ctx *fiber.Ctx) error {
 	if err != nil {
 		return api.Err(ctx, fiber.StatusInternalServerError, "Error parsing template", err)
 	}
-
-	slog.Any("template", template.String())
 
 	mail := types.Mail{
 		To:      []string{templateEmail.To},
