@@ -46,7 +46,7 @@ func getChecker() health.Checker {
 		health.WithPeriodicCheck(15*time.Second, 3*time.Second, health.Check{
 			Name: "smtp",
 			Check: func(ctx context.Context) error {
-				err := smtp.TestConnection()
+				err := smtp.Ping()
 
 				if err != nil {
 					return err

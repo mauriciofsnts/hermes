@@ -30,7 +30,7 @@ func SendEmail(email *types.Mail) error {
 	return nil
 }
 
-func TestConnection() error {
+func Ping() error {
 	addr := getAddr()
 
 	client, err := smtp.Dial(addr)
