@@ -30,6 +30,22 @@ func SendEmail(email *types.Mail) error {
 	return nil
 }
 
+func TestConnection() error {
+	addr := getAddr()
+
+	client, err := smtp.Dial(addr)
+
+	if err != nil {
+		return fmt.Errorf("failed to connect to smt Server: %w", err)
+	}
+
+	if err := client.Noop(); err != nil {
+		return fmt.Errorf("failed to ping smt Server: %w", err)
+	}
+
+	return nil
+}
+
 func getAddr() string {
 	return fmt.Sprintf("%s:%d", config.Hermes.SMTP.Host, config.Hermes.SMTP.Port)
 }

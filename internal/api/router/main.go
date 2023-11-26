@@ -12,15 +12,8 @@ import (
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
 
-const queueKey = "queue"
-
 func CreateFiberInstance(queue types.Queue[types.Mail]) *fiber.App {
 	app := fiber.New()
-
-	app.Use(func(c *fiber.Ctx) error {
-		c.Locals(queueKey, queue)
-		return c.Next()
-	})
 
 	app.Use(limiter.New(limiter.Config{
 		Max:        config.Hermes.RateLimit,

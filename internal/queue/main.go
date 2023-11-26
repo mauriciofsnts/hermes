@@ -10,7 +10,7 @@ import (
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
 
-var queue types.Queue[types.Mail]
+var Queue types.Queue[types.Mail]
 var cancel context.CancelFunc
 
 func NewQueue() types.Queue[types.Mail] {
@@ -24,14 +24,14 @@ func NewQueue() types.Queue[types.Mail] {
 			panic(err)
 		}
 
-		queue = kafka.NewKafkaQueue()
+		Queue = kafka.NewKafkaQueue()
 	} else if redisEnabled {
-		queue = redis.NewRedisQueue()
+		Queue = redis.NewRedisQueue()
 	} else {
-		queue = memory.NewMemoryQueue()
+		Queue = memory.NewMemoryQueue()
 	}
 
-	return queue
+	return Queue
 }
 
 func StartWorker(queue types.Queue[types.Mail]) {

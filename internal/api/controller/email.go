@@ -1,13 +1,12 @@
 package controller
 
 import (
-	"errors"
-
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/mauriciofsnts/hermes/internal/api"
 	"github.com/mauriciofsnts/hermes/internal/config"
+	"github.com/mauriciofsnts/hermes/internal/queue"
 	"github.com/mauriciofsnts/hermes/internal/template"
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
@@ -49,13 +48,7 @@ func (e *EmailControler) SendPlainTextEmail(c *fiber.Ctx) error {
 		Type:    types.TEXT,
 	}
 
-	queue, err := e.getQueue(c)
-
-	if err != nil {
-		return api.Err(c, fiber.StatusInternalServerError, "Error getting queue", err)
-	}
-
-	queue.Write(mail)
+	queue.Queue.Write(mail)
 
 	api.Success(c, fiber.StatusCreated, "Email sent successfully")
 	return nil
@@ -92,24 +85,12 @@ func (e *EmailControler) SendTemplateEmail(ctx *fiber.Ctx) error {
 		Type:    types.HTML,
 	}
 
-	queue, err := e.getQueue(ctx)
-
 	if err != nil {
 		return api.Err(ctx, fiber.StatusInternalServerError, "Error getting queue", err)
 	}
 
-	queue.Write(mail)
+	queue.Queue.Write(mail)
 
 	api.Success(ctx, fiber.StatusCreated, "Email sent successfully")
 	return nil
-}
-
-func (e *EmailControler) getQueue(c *fiber.Ctx) (types.Queue[types.Mail], error) {
-	queue := c.Locals("queue").(types.Queue[types.Mail])
-
-	if queue == nil {
-		return nil, errors.New("queue not found")
-	}
-
-	return queue, nil
 }
