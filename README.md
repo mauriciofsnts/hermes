@@ -54,9 +54,9 @@ Send emails through a simple API request. The API supports the `POST /api/send-e
 
 ```json
 {
-	"to": "example@tdl.com",
-	"subject": "Email subject",
-	"body": "Hello, hermes is awesome!"
+  "to": "example@tdl.com",
+  "subject": "Email subject",
+  "body": "Hello, hermes is awesome!"
 }
 ```
 
@@ -64,13 +64,13 @@ or with template:
 
 ```json
 {
-	"to": "example@tdl.com",
-	"subject": "Email subject",
-	"templateName": "welcome",
-	"content": {
-		"Content": "Hello, hermes is awesome!",
-		"Link": "https://github.com/mauriciofsnts/hermes"
-	}
+  "to": "example@tdl.com",
+  "subject": "Email subject",
+  "templateName": "welcome",
+  "data": {
+    "Content": "Hello, hermes is awesome!",
+    "Link": "https://github.com/mauriciofsnts/hermes"
+  }
 }
 ```
 
@@ -78,13 +78,13 @@ or with template:
 
 ```json
 {
-	"message": "Email sent successfully"
+  "message": "Email sent successfully"
 }
 ```
 
 ```json
 {
-	"error": "Failed to send email: <error message>"
+  "error": "Failed to send email: <error message>"
 }
 ```
 
@@ -132,7 +132,6 @@ The following environment variables are required to run this service:
 | Name          | Description                                               |
 | ------------- | --------------------------------------------------------- |
 | defaultFrom   | The default email address to use as the sender of emails. |
-| allowedOrigin | A list of allowed origins for CORS.                       |
 | smtp.host     | The SMTP server host.                                     |
 | smtp.port     | The SMTP server port.                                     |
 | smtp.username | The SMTP server username.                                 |

@@ -1,8 +1,9 @@
 defaultFrom: string
-allowedOrigins: 
-  - string
-  - string
-rateLimit: int
+
+hermes:
+  rateLimit: 12
+  apikeys:
+    - string
 
 redis:
   host: localhost
@@ -17,7 +18,7 @@ kafka:
   brokers:
     - kafka1:19092
 
-smtp:
+SMTP:
   host: string
   port: int
   username: string

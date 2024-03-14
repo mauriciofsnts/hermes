@@ -43,7 +43,7 @@ func (e *EmailControler) SendPlainTextEmail(c *fiber.Ctx) error {
 	mail := types.Mail{
 		To:      []string{bodyEmail.To},
 		Subject: bodyEmail.Subject,
-		Sender:  config.Hermes.DefaultFrom,
+		Sender:  config.Envs.DefaultFrom,
 		Body:    bodyEmail.Body,
 		Type:    types.TEXT,
 	}
@@ -80,7 +80,7 @@ func (e *EmailControler) SendTemplateEmail(ctx *fiber.Ctx) error {
 	mail := types.Mail{
 		To:      []string{templateEmail.To},
 		Subject: templateEmail.Subject,
-		Sender:  config.Hermes.DefaultFrom,
+		Sender:  config.Envs.DefaultFrom,
 		Body:    template.String(),
 		Type:    types.HTML,
 	}

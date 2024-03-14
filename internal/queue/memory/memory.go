@@ -22,6 +22,7 @@ func (m *MemoryQueue[T]) Read(ctx context.Context) {
 			slog.Info("Context done, stopping read emails from memory")
 			return
 		case email := <-m.email:
+			slog.Info("Sending email..")
 			err := smtp.SendEmail(&email)
 
 			// TODO! error handling?

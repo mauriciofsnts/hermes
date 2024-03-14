@@ -1,12 +1,16 @@
 package config
 
 type Config struct {
-	DefaultFrom    string
-	AllowedOrigins []string
-	Redis          Redis
-	Kafka          Kafka
-	SMTP           SMTP
-	RateLimit      int
+	DefaultFrom string
+	Hermes      Hermes
+	Redis       Redis
+	Kafka       Kafka
+	SMTP        SMTP
+}
+
+type Hermes struct {
+	RateLimit int
+	Apikeys   []string
 }
 
 type Redis struct {

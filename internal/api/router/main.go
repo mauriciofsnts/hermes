@@ -1,7 +1,6 @@
 package router
 
 import (
-	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -15,22 +14,25 @@ import (
 func CreateFiberInstance(queue types.Queue[types.Mail]) *fiber.App {
 	app := fiber.New()
 
+	app.Use(func(c *fiber.Ctx) error {
+		apiKey := c.Get("x-api-key")
+		apikeys := config.Envs.Hermes.Apikeys
+
+		for _, v := range apikeys {
+			if v == apiKey {
+				return c.Next()
+			}
+		}
+
+		return c.SendStatus(fiber.StatusUnauthorized)
+	})
+
 	app.Use(limiter.New(limiter.Config{
-		Max:        config.Hermes.RateLimit,
+		Max:        config.Envs.Hermes.RateLimit,
 		Expiration: 30 * time.Second,
 	}))
 
-	allowedOrigins := config.Hermes.AllowedOrigins
-	var parsedOrigin string
-
-	if len(allowedOrigins) == 0 {
-		parsedOrigin = "*"
-	} else {
-		parsedOrigin = strings.Join(allowedOrigins, ",")
-	}
-
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: parsedOrigin,
 		AllowMethods: "POST,GET,OPTIONS",
 	}))
 

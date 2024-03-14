@@ -47,11 +47,11 @@ func Ping() error {
 }
 
 func getAddr() string {
-	return fmt.Sprintf("%s:%d", config.Hermes.SMTP.Host, config.Hermes.SMTP.Port)
+	return fmt.Sprintf("%s:%d", config.Envs.SMTP.Host, config.Envs.SMTP.Port)
 }
 
 func getAuth() smtp.Auth {
-	return smtp.PlainAuth("", config.Hermes.SMTP.Username, config.Hermes.SMTP.Password, config.Hermes.SMTP.Host)
+	return smtp.PlainAuth("", config.Envs.SMTP.Username, config.Envs.SMTP.Password, config.Envs.SMTP.Host)
 }
 
 func buildHTMLMessage(mail types.Mail) string {

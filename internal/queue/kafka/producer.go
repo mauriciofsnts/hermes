@@ -21,7 +21,7 @@ func NewProducer[T any]() *Producer[T] {
 	}
 
 	writer := kafkaGo.NewWriter(kafkaGo.WriterConfig{
-		Brokers:   config.Hermes.Kafka.Brokers,
+		Brokers:   config.Envs.Kafka.Brokers,
 		Dialer:    dialer,
 		BatchSize: 1,
 	})

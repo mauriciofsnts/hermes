@@ -11,15 +11,15 @@ import (
 func CreateTopic() error {
 	var defaultTopics = []string{}
 
-	connection, err := kafkaGo.Dial("tcp", fmt.Sprintf("%s:%d", config.Hermes.Kafka.Host, config.Hermes.Kafka.Port))
+	connection, err := kafkaGo.Dial("tcp", fmt.Sprintf("%s:%d", config.Envs.Kafka.Host, config.Envs.Kafka.Port))
 
 	if err != nil {
 		slog.Error("Failed to connect to Kafka", err)
 		return err
 	}
 
-	if config.Hermes.Kafka.Topic != "" {
-		defaultTopics = append(defaultTopics, config.Hermes.Kafka.Topic)
+	if config.Envs.Kafka.Topic != "" {
+		defaultTopics = append(defaultTopics, config.Envs.Kafka.Topic)
 	}
 
 	topics := make([]kafkaGo.TopicConfig, len(defaultTopics))

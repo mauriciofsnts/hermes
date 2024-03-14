@@ -13,8 +13,8 @@ import (
 
 func NewRedisClient() *redis.Client {
 	return redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", config.Hermes.Redis.Host, config.Hermes.Redis.Port),
-		Password: config.Hermes.Redis.Password,
+		Addr:     fmt.Sprintf("%s:%d", config.Envs.Redis.Host, config.Envs.Redis.Port),
+		Password: config.Envs.Redis.Password,
 	})
 }
 
@@ -26,7 +26,7 @@ type RedisQueue[T any] struct {
 func (r *RedisQueue[T]) Read(ctx context.Context) {
 	slog.Info("Starting Redis consumer...")
 
-	r.consumer = NewConsumer[types.Mail](r.client, config.Hermes.Redis.Topic)
+	r.consumer = NewConsumer[types.Mail](r.client, config.Envs.Redis.Topic)
 
 	readCh := make(chan types.ReadData[types.Mail])
 
@@ -58,7 +58,7 @@ func (r *RedisQueue[T]) Read(ctx context.Context) {
 func (r *RedisQueue[T]) Write(email types.Mail) error {
 	producer := NewProducer[types.Mail](
 		*r.client,
-		config.Hermes.Redis.Topic,
+		config.Envs.Redis.Topic,
 	)
 
 	err := producer.Produce(email)
@@ -87,6 +87,6 @@ func NewRedisQueue() types.Queue[types.Mail] {
 
 	return &RedisQueue[types.Mail]{
 		client:   client,
-		consumer: NewConsumer[types.Mail](client, config.Hermes.Redis.Topic),
+		consumer: NewConsumer[types.Mail](client, config.Envs.Redis.Topic),
 	}
 }

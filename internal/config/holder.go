@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	Hermes *Config
+	Envs *Config
 )
 
 func LoadConfig() error {
@@ -17,7 +17,7 @@ func LoadConfig() error {
 		return err
 	}
 
-	err = yaml.Unmarshal(f, &Hermes)
+	err = yaml.Unmarshal(f, &Envs)
 
 	if err != nil {
 		return err

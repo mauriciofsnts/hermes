@@ -14,8 +14,8 @@ var Queue types.Queue[types.Mail]
 var cancel context.CancelFunc
 
 func NewQueue() types.Queue[types.Mail] {
-	kafkaEnabled := config.Hermes.Kafka.Enabled
-	redisEnabled := config.Hermes.Redis.Enabled
+	kafkaEnabled := config.Envs.Kafka.Enabled
+	redisEnabled := config.Envs.Redis.Enabled
 
 	if kafkaEnabled {
 		err := kafka.CreateTopic()
