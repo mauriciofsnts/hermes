@@ -23,6 +23,6 @@ go.work
 
 /hermes
 /tmp
-config.yml
+config.yaml
 
 .vscode
