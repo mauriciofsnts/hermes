@@ -14,6 +14,22 @@ import (
 func CreateFiberInstance(queue types.Queue[types.Mail]) *fiber.App {
 	app := fiber.New()
 
+	app.Use(cors.New(cors.Config{
+		AllowMethods: "POST,GET,OPTIONS",
+	}))
+
+	return app
+}
+
+func Listen(app *fiber.App) error {
+	healthController := controller.NewHealthController()
+	emailController := controller.NewEmailController()
+	templateController := controller.NewTemplateController()
+
+	api := app.Group("/api")
+
+	api.Get("/health", healthController.Health)
+
 	app.Use(func(c *fiber.Ctx) error {
 		apiKey := c.Get("x-api-key")
 		apikeys := config.Envs.Hermes.Apikeys
@@ -31,22 +47,6 @@ func CreateFiberInstance(queue types.Queue[types.Mail]) *fiber.App {
 		Max:        config.Envs.Hermes.RateLimit,
 		Expiration: 30 * time.Second,
 	}))
-
-	app.Use(cors.New(cors.Config{
-		AllowMethods: "POST,GET,OPTIONS",
-	}))
-
-	return app
-}
-
-func Listen(app *fiber.App) error {
-	healthController := controller.NewHealthController()
-	emailController := controller.NewEmailController()
-	templateController := controller.NewTemplateController()
-
-	api := app.Group("/api")
-
-	api.Get("/health", healthController.Health)
 
 	api.Post("/send", emailController.SendPlainTextEmail)
 	api.Post("/send/:slug", emailController.SendTemplateEmail)
