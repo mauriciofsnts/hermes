@@ -11,7 +11,7 @@ var (
 )
 
 func LoadConfig() error {
-	f, err := os.ReadFile("./config.yml")
+	f, err := os.ReadFile("./config.yaml")
 
 	if err != nil {
 		return err
