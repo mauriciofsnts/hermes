@@ -6,7 +6,7 @@ import (
 
 	"github.com/mauriciofsnts/hermes/internal/api"
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/queue"
+	"github.com/mauriciofsnts/hermes/internal/providers"
 	"github.com/mauriciofsnts/hermes/internal/template"
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
@@ -48,7 +48,7 @@ func (e *EmailControler) SendPlainTextEmail(c *fiber.Ctx) error {
 		Type:    types.TEXT,
 	}
 
-	queue.Queue.Write(mail)
+	providers.Queue.Write(mail)
 
 	api.Success(c, fiber.StatusCreated, "Email sent successfully")
 	return nil
@@ -89,7 +89,7 @@ func (e *EmailControler) SendTemplateEmail(ctx *fiber.Ctx) error {
 		return api.Err(ctx, fiber.StatusInternalServerError, "Error getting queue", err)
 	}
 
-	queue.Queue.Write(mail)
+	providers.Queue.Write(mail)
 
 	api.Success(ctx, fiber.StatusCreated, "Email sent successfully")
 	return nil

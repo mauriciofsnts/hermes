@@ -7,7 +7,7 @@ import (
 	"github.com/alexliesenfeld/health"
 	"github.com/gofiber/fiber/v2"
 	"github.com/mauriciofsnts/hermes/internal/api"
-	"github.com/mauriciofsnts/hermes/internal/queue"
+	"github.com/mauriciofsnts/hermes/internal/providers"
 	"github.com/mauriciofsnts/hermes/internal/smtp"
 )
 
@@ -33,7 +33,7 @@ func getChecker() health.Checker {
 		health.WithCheck(health.Check{
 			Name: "queue",
 			Check: func(ctx context.Context) error {
-				_, err := queue.Queue.Ping()
+				_, err := providers.Queue.Ping()
 
 				if err != nil {
 					return err

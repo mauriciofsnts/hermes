@@ -9,7 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/mauriciofsnts/hermes/internal/api/router"
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/queue"
+	"github.com/mauriciofsnts/hermes/internal/providers"
 )
 
 func Start() {
@@ -21,10 +21,10 @@ func Start() {
 
 	SetupLog()
 
-	q := queue.NewQueue()
+	queue := providers.NewQueue()
 
-	go queue.StartWorker(q)
-	app := router.CreateFiberInstance(q)
+	go providers.StartWorker(queue)
+	app := router.CreateFiberInstance(queue)
 
 	go onShutdown(app)
 
@@ -42,7 +42,7 @@ func onShutdown(app *fiber.App) {
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGKILL)
 	<-stop
 
-	queue.StopWorker()
+	providers.StopWorker()
 	_ = app.Shutdown()
 	os.Exit(0)
 }
