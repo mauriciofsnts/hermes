@@ -10,10 +10,7 @@ COPY Makefile .
  
 COPY internal internal
 COPY cmd cmd
-
-# Adicione o comando abaixo para copiar o arquivo config.yml para o diretório /app
-COPY config.yml .
-
+ 
 RUN make dist
 
 # STAGE: TARGET
