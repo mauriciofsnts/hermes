@@ -20,6 +20,6 @@ kafka:
 
 SMTP:
   host: string
-  port: int
+  port: 587
   username: string
   password: string
