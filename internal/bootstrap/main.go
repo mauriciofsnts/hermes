@@ -7,31 +7,27 @@ import (
 	"syscall"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/mauriciofsnts/hermes/internal/api/router"
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/providers"
+	"github.com/mauriciofsnts/hermes/internal/providers/queue"
+	"github.com/mauriciofsnts/hermes/internal/server"
 )
 
-func Start() {
-	err := config.LoadConfig()
+func Start(cfg *config.Config) {
+	setupLog(cfg)
 
-	if err != nil {
-		slog.Error("Failed to load envs: " + err.Error())
-	}
+	q := queue.NewQueue(cfg)
 
-	SetupLog()
+	go queue.StartWorker(q)
 
-	queue := providers.NewQueue()
-
-	go providers.StartWorker(queue)
-	app := router.CreateFiberInstance(queue)
+	app := server.CreateFiberInstance()
 
 	go onShutdown(app)
 
-	err = router.Listen(app)
+	err := server.Listen(app)
 
 	if err != nil {
 		slog.Error("Failed to start HTTP server: " + err.Error())
+		os.Exit(1)
 	}
 }
 
@@ -42,7 +38,7 @@ func onShutdown(app *fiber.App) {
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGKILL)
 	<-stop
 
-	providers.StopWorker()
+	queue.StopWorker()
 	_ = app.Shutdown()
 	os.Exit(0)
 }

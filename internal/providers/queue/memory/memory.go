@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/mauriciofsnts/hermes/internal/smtp"
+	"github.com/mauriciofsnts/hermes/internal/providers/smtp"
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
 
@@ -13,16 +13,16 @@ type MemoryQueue[T any] struct {
 }
 
 func (m *MemoryQueue[T]) Read(ctx context.Context) {
-	slog.Info("Reading emails from memory")
+	slog.Debug("Reading emails from memory")
 
 	for {
 		select {
 		case <-ctx.Done():
 			// TODO! graceful shutdown
-			slog.Info("Context done, stopping read emails from memory")
+			slog.Debug("Context done, stopping read emails from memory")
 			return
 		case email := <-m.email:
-			slog.Info("Sending email..")
+			slog.Debug("Sending email..")
 			err := smtp.SendEmail(&email)
 
 			// TODO! error handling?

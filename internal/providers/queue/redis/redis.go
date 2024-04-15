@@ -2,19 +2,17 @@ package redis
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/smtp"
 	"github.com/mauriciofsnts/hermes/internal/types"
 	"github.com/redis/go-redis/v9"
 )
 
-func NewRedisClient() *redis.Client {
+func NewRedisClient(addr string, password string) *redis.Client {
 	return redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", config.Envs.Redis.Host, config.Envs.Redis.Port),
-		Password: config.Envs.Redis.Password,
+		Addr:     addr,
+		Password: password,
 	})
 }
 
@@ -24,9 +22,9 @@ type RedisQueue[T any] struct {
 }
 
 func (r *RedisQueue[T]) Read(ctx context.Context) {
-	slog.Info("Starting Redis consumer...")
+	slog.Debug("Starting Redis consumer...")
 
-	r.consumer = NewConsumer[types.Mail](r.client, config.Envs.Redis.Topic)
+	r.consumer = NewConsumer[types.Mail](r.client, "hermes")
 
 	readCh := make(chan types.ReadData[types.Mail])
 
@@ -35,7 +33,7 @@ func (r *RedisQueue[T]) Read(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			slog.Info("Stopping redis consumer...")
+			slog.Debug("Stopping redis consumer...")
 			_ = r.consumer.Close()
 			return
 		case data := <-readCh:
@@ -44,12 +42,15 @@ func (r *RedisQueue[T]) Read(ctx context.Context) {
 				continue
 			}
 
-			err := smtp.SendEmail(data.Data)
+			slog.Debug("Sending email...")
 
-			if err != nil {
-				slog.Error("Failed to send email", err)
-				continue
-			}
+			// err := smtp.SendEmail(data.Data)
+
+			// if err != nil {
+			// 	slog.Error("Failed to send email", err)
+			// 	continue
+			// }
+			continue
 		}
 	}
 
@@ -58,7 +59,7 @@ func (r *RedisQueue[T]) Read(ctx context.Context) {
 func (r *RedisQueue[T]) Write(email types.Mail) error {
 	producer := NewProducer[types.Mail](
 		*r.client,
-		config.Envs.Redis.Topic,
+		config.Hermes.Redis.Topic,
 	)
 
 	err := producer.Produce(email)
@@ -83,10 +84,10 @@ func (r *RedisQueue[T]) Ping() (string, error) {
 }
 
 func NewRedisProvider() types.Queue[types.Mail] {
-	client := NewRedisClient()
+	client := NewRedisClient(config.Hermes.Redis.Address, config.Hermes.Redis.Password)
 
 	return &RedisQueue[types.Mail]{
 		client:   client,
-		consumer: NewConsumer[types.Mail](client, config.Envs.Redis.Topic),
+		consumer: NewConsumer[types.Mail](client, config.Hermes.Redis.Topic),
 	}
 }

@@ -1,23 +1,20 @@
-package providers
+package queue
 
 import (
 	"context"
 
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/providers/kafka"
-	"github.com/mauriciofsnts/hermes/internal/providers/memory"
-	"github.com/mauriciofsnts/hermes/internal/providers/redis"
+	"github.com/mauriciofsnts/hermes/internal/providers/queue/kafka"
+	"github.com/mauriciofsnts/hermes/internal/providers/queue/memory"
+	"github.com/mauriciofsnts/hermes/internal/providers/queue/redis"
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
 
 var Queue types.Queue[types.Mail]
 var cancel context.CancelFunc
 
-func NewQueue() types.Queue[types.Mail] {
-	kafkaEnabled := config.Envs.Kafka.Enabled
-	redisEnabled := config.Envs.Redis.Enabled
-
-	if kafkaEnabled {
+func NewQueue(cfg *config.Config) types.Queue[types.Mail] {
+	if cfg.Kafka != nil {
 		err := kafka.CreateTopic()
 
 		if err != nil {
@@ -25,7 +22,7 @@ func NewQueue() types.Queue[types.Mail] {
 		}
 
 		Queue = kafka.NewKafkaProvider()
-	} else if redisEnabled {
+	} else if cfg.Redis != nil {
 		Queue = redis.NewRedisProvider()
 	} else {
 		Queue = memory.NewMemoryProvider()
