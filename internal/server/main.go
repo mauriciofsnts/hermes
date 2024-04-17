@@ -8,7 +8,9 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/server/controller"
+	"github.com/mauriciofsnts/hermes/internal/server/api/health"
+	"github.com/mauriciofsnts/hermes/internal/server/api/notify"
+	"github.com/mauriciofsnts/hermes/internal/server/api/template"
 )
 
 func CreateFiberInstance() *fiber.App {
@@ -25,7 +27,7 @@ func Listen(app *fiber.App) error {
 
 	api := app.Group("/api/v1")
 
-	healthController := controller.NewHealthController()
+	healthController := health.NewHealthController()
 	api.Get("/health", healthController.Health)
 
 	app.Use(func(c *fiber.Ctx) error {
@@ -55,11 +57,11 @@ func Listen(app *fiber.App) error {
 		return c.Next()
 	})
 
-	emailController := controller.NewEmailController()
+	emailController := notify.NewEmailController()
 	api.Post("/notify", emailController.SendPlainTextEmail)
 	api.Post("/notify/:slug", emailController.SendTemplateEmail)
 
-	templateController := controller.NewTemplateController()
+	templateController := template.NewTemplateController()
 	api.Get("/templates/:slug/raw", templateController.GetRaw)
 	api.Post("/templates", templateController.Create)
 

@@ -1,4 +1,4 @@
-package controller
+package notify
 
 import (
 	"github.com/go-playground/validator/v10"
@@ -6,8 +6,8 @@ import (
 
 	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/providers/queue"
+	"github.com/mauriciofsnts/hermes/internal/providers/template"
 	"github.com/mauriciofsnts/hermes/internal/server/helper"
-	"github.com/mauriciofsnts/hermes/internal/template"
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
 
@@ -18,14 +18,14 @@ type EmailControllerInterface interface {
 
 type EmailControler struct {
 	EmailControllerInterface
-	validate        *validator.Validate
-	templateService template.TemplateServiceInterface
+	validate         *validator.Validate
+	templateProvider template.TemplateProvider
 }
 
 func NewEmailController() *EmailControler {
 	return &EmailControler{
-		validate:        validator.New(),
-		templateService: template.NewTemplateService(),
+		validate:         validator.New(),
+		templateProvider: template.NewTemplateService(),
 	}
 }
 
@@ -71,7 +71,7 @@ func (e *EmailControler) SendTemplateEmail(ctx *fiber.Ctx) error {
 		return helper.Err(ctx, fiber.StatusBadRequest, "Invalid body", err)
 	}
 
-	template, err := e.templateService.ParseTemplate(templateName, templateEmail.Data)
+	template, err := e.templateProvider.ParseTemplate(templateName, templateEmail.Data)
 
 	if err != nil {
 		return helper.Err(ctx, fiber.StatusInternalServerError, "Error parsing template", err)
