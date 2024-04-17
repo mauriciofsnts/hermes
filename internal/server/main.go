@@ -14,12 +14,12 @@ import (
 func CreateFiberInstance() *fiber.App {
 	app := fiber.New()
 
-	app.Use(cors.New(cors.Config{
-		AllowMethods: "POST,GET,OPTIONS",
-	}))
+	app.Use(cors.New(cors.Config{AllowMethods: "POST,GET,OPTIONS"}))
 
 	return app
 }
+
+var rateLimitsByAPIKey = make(map[string](func(*fiber.Ctx) error))
 
 func Listen(app *fiber.App) error {
 
@@ -31,28 +31,28 @@ func Listen(app *fiber.App) error {
 	app.Use(func(c *fiber.Ctx) error {
 		apiKey := c.Get("x-api-key")
 
-		app := config.Hermes.AppsByAPIKey[apiKey]
-
-		if app != nil {
-			return c.Next()
+		appConfig, ok := config.Hermes.AppsByAPIKey[apiKey]
+		if !ok {
+			return c.Status(fiber.StatusUnauthorized).SendString("Chave API inválida")
 		}
 
-		return c.SendStatus(fiber.StatusUnauthorized)
-	})
-
-	app.Use(func(c *fiber.Ctx) error {
-		apiKey := c.Get("x-api-key")
-
-		app := config.Hermes.AppsByAPIKey[apiKey]
-
-		if app != nil {
-			return limiter.New(limiter.Config{
-				Max:        1,
+		rateLimiter, ok := rateLimitsByAPIKey[apiKey]
+		if !ok {
+			rateLimiter = limiter.New(limiter.Config{
+				Max:        appConfig.LimitPerIPPerHour,
 				Expiration: 1 * time.Hour,
-			})(c)
+				KeyGenerator: func(c *fiber.Ctx) string {
+					return c.Get("x-real-ip")
+				},
+			})
+			rateLimitsByAPIKey[apiKey] = rateLimiter
 		}
 
-		return c.SendStatus(fiber.StatusUnauthorized)
+		if err := rateLimiter(c); err != nil {
+			return c.Status(fiber.StatusTooManyRequests).SendString("Limite de requisições excedido")
+		}
+
+		return c.Next()
 	})
 
 	emailController := controller.NewEmailController()
