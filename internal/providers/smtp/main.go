@@ -2,7 +2,6 @@ package smtp
 
 import (
 	"fmt"
-	"log/slog"
 	"net/smtp"
 	"strings"
 
@@ -22,15 +21,11 @@ func SendEmail(email *types.Mail) error {
 	auth := getAuth()
 	addr := getAddr()
 
-	slog.Info("sending email", "to", email.To, "subject", email.Subject, "msg", msg)
-	slog.Info("addr", addr)
-	slog.Info("auth", auth)
+	err := smtp.SendMail(addr, auth, email.Sender, email.To, []byte(msg))
 
-	// err := smtp.SendMail(addr, auth, email.Sender, email.To, []byte(msg))
-
-	// if err != nil {
-	// 	return err
-	// }
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -42,7 +42,7 @@ func Listen(app *fiber.App) error {
 				Max:        appConfig.LimitPerIPPerHour,
 				Expiration: 1 * time.Hour,
 				KeyGenerator: func(c *fiber.Ctx) string {
-					return c.Get("x-real-ip")
+					return c.Get("x-api-key")
 				},
 			})
 			rateLimitsByAPIKey[apiKey] = rateLimiter

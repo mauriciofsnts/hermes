@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/mauriciofsnts/hermes/internal/config"
+	"github.com/mauriciofsnts/hermes/internal/providers/smtp"
 	"github.com/mauriciofsnts/hermes/internal/types"
 	"github.com/redis/go-redis/v9"
 )
@@ -42,14 +43,12 @@ func (r *RedisQueue[T]) Read(ctx context.Context) {
 				continue
 			}
 
-			slog.Debug("Sending email...")
+			err := smtp.SendEmail(data.Data)
 
-			// err := smtp.SendEmail(data.Data)
-
-			// if err != nil {
-			// 	slog.Error("Failed to send email", err)
-			// 	continue
-			// }
+			if err != nil {
+				slog.Error("Failed to send email", err)
+				continue
+			}
 			continue
 		}
 	}
