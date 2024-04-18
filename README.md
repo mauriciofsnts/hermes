@@ -50,7 +50,7 @@ Simplifies the setup of customizable email templates through Hermes APIs. With t
 
 ### Send emails via API
 
-Send emails through a simple API request. The API supports the `POST /api/send-email` method and requires the following parameters in the request body (in JSON format):
+Send emails through a simple API request. The API supports the `POST /api/v1/notify` method and requires the following parameters in the request body (in JSON format):
 
 ```json
 {
@@ -61,6 +61,8 @@ Send emails through a simple API request. The API supports the `POST /api/send-e
 ```
 
 or with template:
+
+`POST /api/v1/notify/:slug`
 
 ```json
 {
@@ -126,16 +128,6 @@ If you prefer not to utilize Redis or Kafka, Memory cache is an alternative opti
 ---
 
 ## 📝 Environment Variables
-
-The following environment variables are required to run this service:
-
-| Name          | Description                                               |
-| ------------- | --------------------------------------------------------- |
-| defaultFrom   | The default email address to use as the sender of emails. |
-| smtp.host     | The SMTP server host.                                     |
-| smtp.port     | The SMTP server port.                                     |
-| smtp.username | The SMTP server username.                                 |
-| smtp.password | The SMTP server password.                                 |
 
 You can check all the available configurations in the [config_example.yml](https://github.com/mauriciofsnts/hermes/blob/master/config_example.yml) file.
 

@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/smtp"
+	"github.com/mauriciofsnts/hermes/internal/providers/smtp"
 	"github.com/mauriciofsnts/hermes/internal/types"
 	kafkaGo "github.com/segmentio/kafka-go"
 )
@@ -19,7 +19,7 @@ type KakfaQueue[T any] struct {
 }
 
 func (k *KakfaQueue[T]) Read(ctx context.Context) {
-	slog.Info("Starting Kafka consumer...")
+	slog.Debug("Starting Kafka consumer...")
 
 	readCh := make(chan types.ReadData[types.Mail])
 
@@ -28,7 +28,7 @@ func (k *KakfaQueue[T]) Read(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			slog.Info("Stopping Kafka consumer...")
+			slog.Debug("Stopping Kafka consumer...")
 
 			_ = k.consumer.Close()
 			return
@@ -50,7 +50,7 @@ func (k *KakfaQueue[T]) Read(ctx context.Context) {
 }
 
 func (k *KakfaQueue[T]) Write(content T) error {
-	err := k.producer.Produce(uuid.New().String(), content, config.Envs.Kafka.Topic)
+	err := k.producer.Produce(uuid.New().String(), content, config.Hermes.Kafka.Topic)
 
 	if err != nil {
 		slog.Error("Failed to produce content", err)
@@ -61,7 +61,7 @@ func (k *KakfaQueue[T]) Write(content T) error {
 }
 
 func (k *KakfaQueue[T]) Ping() (string, error) {
-	conn, err := k.dialer.DialLeader(context.Background(), "tcp", config.Envs.Kafka.Host, config.Envs.Kafka.Topic, 0)
+	conn, err := k.dialer.DialLeader(context.Background(), "tcp", config.Hermes.Kafka.Address, config.Hermes.Kafka.Topic, 0)
 
 	if err != nil {
 		slog.Error("Failed to connect to Kafka", err)
@@ -78,6 +78,6 @@ func NewKafkaProvider() types.Queue[types.Mail] {
 	return &KakfaQueue[types.Mail]{
 		producer: NewProducer[types.Mail](),
 		dialer:   dialer,
-		consumer: NewConsumer[types.Mail](dialer, config.Envs.Kafka.Topic),
+		consumer: NewConsumer[types.Mail](dialer, config.Hermes.Kafka.Topic),
 	}
 }

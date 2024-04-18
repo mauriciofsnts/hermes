@@ -1,7 +1,6 @@
 package kafka
 
 import (
-	"fmt"
 	"log/slog"
 
 	"github.com/mauriciofsnts/hermes/internal/config"
@@ -11,15 +10,15 @@ import (
 func CreateTopic() error {
 	var defaultTopics = []string{}
 
-	connection, err := kafkaGo.Dial("tcp", fmt.Sprintf("%s:%d", config.Envs.Kafka.Host, config.Envs.Kafka.Port))
+	connection, err := kafkaGo.Dial("tcp", config.Hermes.Kafka.Address)
 
 	if err != nil {
 		slog.Error("Failed to connect to Kafka", err)
 		return err
 	}
 
-	if config.Envs.Kafka.Topic != "" {
-		defaultTopics = append(defaultTopics, config.Envs.Kafka.Topic)
+	if config.Hermes.Kafka.Topic != "" {
+		defaultTopics = append(defaultTopics, config.Hermes.Kafka.Topic)
 	}
 
 	topics := make([]kafkaGo.TopicConfig, len(defaultTopics))

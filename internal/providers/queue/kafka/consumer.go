@@ -20,7 +20,7 @@ func NewConsumer[T any](dialer *kafkaGo.Dialer, topic string) *Consumer[T] {
 		Dialer: dialer,
 		Topic:  topic,
 		reader: kafkaGo.NewReader(kafkaGo.ReaderConfig{
-			Brokers: config.Envs.Kafka.Brokers,
+			Brokers: config.Hermes.Kafka.Brokers,
 			Topic:   topic,
 			Dialer:  dialer,
 			GroupID: "hermes",
