@@ -35,7 +35,7 @@ func Listen(app *fiber.App) error {
 
 		appConfig, ok := config.Hermes.AppsByAPIKey[apiKey]
 		if !ok {
-			return c.Status(fiber.StatusUnauthorized).SendString("Chave API inválida")
+			return c.Status(fiber.StatusUnauthorized).SendString("Invalid API Key")
 		}
 
 		rateLimiter, ok := rateLimitsByAPIKey[apiKey]
@@ -51,7 +51,7 @@ func Listen(app *fiber.App) error {
 		}
 
 		if err := rateLimiter(c); err != nil {
-			return c.Status(fiber.StatusTooManyRequests).SendString("Limite de requisições excedido")
+			return c.Status(fiber.StatusTooManyRequests).SendString("Too many requests")
 		}
 
 		return c.Next()
