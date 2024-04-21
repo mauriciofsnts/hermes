@@ -5,6 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/mauriciofsnts/hermes/internal/config"
+	"github.com/mauriciofsnts/hermes/internal/ctx"
 	"github.com/mauriciofsnts/hermes/internal/providers/queue"
 	"github.com/mauriciofsnts/hermes/internal/providers/template"
 	"github.com/mauriciofsnts/hermes/internal/server/helper"
@@ -31,6 +32,13 @@ func NewEmailController() *EmailControler {
 
 func (e *EmailControler) SendPlainTextEmail(c *fiber.Ctx) error {
 	var bodyEmail types.PlainTextEmail
+	ctxProviders := c.Locals("providers").(*ctx.Providers)
+
+	if ctxProviders == nil {
+		return helper.Err(c, fiber.StatusInternalServerError, "Providers not found", nil)
+	}
+
+	queue := ctxProviders.Queue
 
 	if err := c.BodyParser(&bodyEmail); err != nil {
 		return helper.Err(c, fiber.StatusBadRequest, "Invalid body", err)
@@ -48,7 +56,7 @@ func (e *EmailControler) SendPlainTextEmail(c *fiber.Ctx) error {
 		Type:    types.TEXT,
 	}
 
-	queue.Queue.Write(mail)
+	queue.Write(mail)
 
 	helper.Success(c, fiber.StatusCreated, "Email sent successfully")
 	return nil

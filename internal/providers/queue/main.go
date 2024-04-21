@@ -13,12 +13,12 @@ import (
 var Queue types.Queue[types.Mail]
 var cancel context.CancelFunc
 
-func NewQueue(cfg *config.Config) types.Queue[types.Mail] {
+func NewQueue(cfg *config.Config) (types.Queue[types.Mail], error) {
 	if cfg.Kafka != nil {
 		err := kafka.CreateTopic()
 
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
 		Queue = kafka.NewKafkaProvider()
@@ -28,7 +28,7 @@ func NewQueue(cfg *config.Config) types.Queue[types.Mail] {
 		Queue = memory.NewMemoryProvider()
 	}
 
-	return Queue
+	return Queue, nil
 }
 
 func StartWorker(queue types.Queue[types.Mail]) {
