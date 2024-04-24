@@ -7,7 +7,6 @@ type Config struct {
 	Http  *HTTPConfig
 	Log   *LogConfig
 	Redis *RedisConfig
-	Kafka *KafkaConfig
 
 	Apps         map[string]*AppConfig
 	AppsByAPIKey map[string]*AppConfig `yaml:"-" json:"-"`
@@ -17,12 +16,6 @@ type RedisConfig struct {
 	Address  string
 	Password string
 	Topic    string
-}
-
-type KafkaConfig struct {
-	Address string
-	Topic   string
-	Brokers []string
 }
 
 type HTTPConfig struct {

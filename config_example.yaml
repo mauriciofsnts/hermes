@@ -32,7 +32,6 @@ apps:
 
 # If you don't want to use them, simply comment or remove the configuration.
 # If you don't fill in the configurations, the system will use the in-memory queue.
-# If you setup both redis and kafka, the system will use the first one configured.
 redis:
   # redis address with port
   address: "localhost:6379"
@@ -40,12 +39,3 @@ redis:
   password: "password"
   # redis topic
   topic: hermes
-
-kafka:
-  # kafka address with port
-  address: "localhost:9092"
-  # kafka topic
-  topic: hermes
-  # kafka brokers
-  brokers:
-    - kafka1:19092
