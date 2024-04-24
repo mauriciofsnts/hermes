@@ -2,6 +2,7 @@ package queue
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/providers/queue/memory"
@@ -14,12 +15,17 @@ var cancel context.CancelFunc
 
 func NewQueue(cfg *config.Config) (types.Queue[types.Mail], error) {
 	if cfg.Redis != nil {
-		Queue = redis.NewRedisProvider()
-	} else {
-		Queue = memory.NewMemoryProvider()
+		Queue, err := redis.NewRedisProvider()
+
+		if err == nil {
+			return Queue, nil
+		}
 	}
 
-	return Queue, nil
+	slog.Warn("Using memory queue, because no queue provider was found")
+	memoryQueue := memory.NewMemoryProvider()
+
+	return memoryQueue, nil
 }
 
 func StartWorker(queue types.Queue[types.Mail]) {
