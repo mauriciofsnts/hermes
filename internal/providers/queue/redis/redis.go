@@ -82,11 +82,18 @@ func (r *RedisQueue[T]) Ping() (string, error) {
 	return "Redis is up", nil
 }
 
-func NewRedisProvider() types.Queue[types.Mail] {
+func NewRedisProvider() (types.Queue[types.Mail], error) {
 	client := NewRedisClient(config.Hermes.Redis.Address, config.Hermes.Redis.Password)
+
+	_, err := client.Ping(ctx).Result()
+
+	if err != nil {
+		slog.Error("Failed to connect to redis", err)
+		return nil, err
+	}
 
 	return &RedisQueue[types.Mail]{
 		client:   client,
 		consumer: NewConsumer[types.Mail](client, config.Hermes.Redis.Topic),
-	}
+	}, nil
 }

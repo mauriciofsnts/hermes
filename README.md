@@ -96,18 +96,6 @@ or with template:
 
 The service has a queue system to send emails asynchronously. This ensures that the API response is fast and that the email is sent in the background.
 
-#### Kafka
-
-To use the Kafka queue system, you need to configure the Kafka server. For that, you should set the following environment variables:
-
-```yaml
-kafka:
-  enabled: true
-  topic: string
-  brokers:
-    - kafka1:19092
-```
-
 #### Redis
 
 To use the Redis queue system, you need to configure the Redis server. For that, you should set the following environment variables:
@@ -123,7 +111,7 @@ redis:
 
 #### Memory cache
 
-If you prefer not to utilize Redis or Kafka, Memory cache is an alternative option. To enable Memory cache, simply set the "enabled" environment variables for both Redis and Kafka to false.
+If you prefer not to utilize Redis or Memory cache is an alternative option.
 
 ---
 

@@ -2,6 +2,7 @@ package smtp
 
 import (
 	"fmt"
+	"log/slog"
 	"net/smtp"
 	"strings"
 
@@ -36,10 +37,12 @@ func Ping() error {
 	client, err := smtp.Dial(addr)
 
 	if err != nil {
+		slog.Error("failed to connect to smt Server", err)
 		return fmt.Errorf("failed to connect to smt Server: %w", err)
 	}
 
 	if err := client.Noop(); err != nil {
+		slog.Error("failed to ping smt Server", err)
 		return fmt.Errorf("failed to ping smt Server: %w", err)
 	}
 
