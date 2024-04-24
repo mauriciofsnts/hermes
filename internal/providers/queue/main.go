@@ -24,6 +24,7 @@ func NewQueue(cfg *config.Config) (types.Queue[types.Mail], error) {
 
 	slog.Warn("Using memory queue, because no queue provider was found")
 	memoryQueue := memory.NewMemoryProvider()
+	Queue = memoryQueue
 
 	return memoryQueue, nil
 }
