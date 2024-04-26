@@ -32,11 +32,12 @@ func Listen(app *fiber.App) error {
 	healthController := health.NewHealthController()
 	api.Get("/health", healthController.Health)
 
-	app.Use(middleware.Ratelimit)
+	notifyGroup := api.Group("/notify")
+	notifyGroup.Use(middleware.Ratelimit)
 
 	emailController := notify.NewEmailController()
-	api.Post("/notify", emailController.SendPlainTextEmail)
-	api.Post("/notify/:slug", emailController.SendTemplateEmail)
+	notifyGroup.Post("/", emailController.SendPlainTextEmail)
+	notifyGroup.Post("/:slug", emailController.SendTemplateEmail)
 
 	templateController := template.NewTemplateController()
 	api.Get("/templates/:slug/raw", templateController.GetRaw)

@@ -19,6 +19,7 @@ func Ratelimit(c *fiber.Ctx) error {
 	}
 
 	rateLimiter, ok := rateLimitsByAPIKey[apiKey]
+
 	if !ok {
 		rateLimiter = limiter.New(limiter.Config{
 			Max:        appConfig.LimitPerIPPerHour,
@@ -30,9 +31,5 @@ func Ratelimit(c *fiber.Ctx) error {
 		rateLimitsByAPIKey[apiKey] = rateLimiter
 	}
 
-	if err := rateLimiter(c); err != nil {
-		return c.Status(fiber.StatusTooManyRequests).SendString("Too many requests")
-	}
-
-	return c.Next()
+	return rateLimiter(c)
 }
