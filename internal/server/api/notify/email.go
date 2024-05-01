@@ -1,100 +1,104 @@
 package notify
 
 import (
-	"github.com/go-playground/validator/v10"
-	"github.com/gofiber/fiber/v2"
+	"log/slog"
+	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/ctx"
 	"github.com/mauriciofsnts/hermes/internal/providers/queue"
 	"github.com/mauriciofsnts/hermes/internal/providers/template"
 	"github.com/mauriciofsnts/hermes/internal/server/helper"
+	"github.com/mauriciofsnts/hermes/internal/server/validator"
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
 
 type EmailControllerInterface interface {
-	SendPlainTextEmail(c *fiber.Ctx) error
-	SendTemplateEmail(c *fiber.Ctx) error
+	SendPlainTextEmail(w http.ResponseWriter, r *http.Request)
+	SendTemplateEmail(w http.ResponseWriter, r *http.Request)
 }
 
 type EmailControler struct {
 	EmailControllerInterface
-	validate         *validator.Validate
 	templateProvider template.TemplateProvider
+	queue            types.Queue[types.Mail]
 }
 
 func NewEmailController() *EmailControler {
 	return &EmailControler{
-		validate:         validator.New(),
 		templateProvider: template.NewTemplateService(),
+		queue:            queue.Queue,
 	}
 }
 
-func (e *EmailControler) SendPlainTextEmail(c *fiber.Ctx) error {
-	var bodyEmail types.PlainTextEmail
-	ctxProviders := c.Locals("providers").(*ctx.Providers)
+func (e *EmailControler) SendPlainTextEmail(w http.ResponseWriter, r *http.Request) {
+	queue := e.queue
 
-	if ctxProviders == nil {
-		return helper.Err(c, fiber.StatusInternalServerError, "Providers not found", nil)
+	if queue == nil {
+		slog.Error("Queue not found")
+		helper.Err(w, helper.BadRequestErr, "Queue not found")
+		return
 	}
 
-	queue := ctxProviders.Queue
+	body, validationErr := validator.MustGetBody[types.PlainTextEmail](r)
 
-	if err := c.BodyParser(&bodyEmail); err != nil {
-		return helper.Err(c, fiber.StatusBadRequest, "Invalid body", err)
-	}
-
-	if err := e.validate.Struct(bodyEmail); err != nil {
-		return helper.Err(c, fiber.StatusBadRequest, "Invalid body", err)
+	if validationErr != nil {
+		helper.DetailedError(w, helper.BadRequestErr, validationErr.Details)
+		return
 	}
 
 	mail := types.Mail{
-		To:      []string{bodyEmail.To},
-		Subject: bodyEmail.Subject,
+		To:      []string{body.To},
+		Subject: body.Subject,
 		Sender:  config.Hermes.SMTP.Sender,
-		Body:    bodyEmail.Body,
+		Body:    body.Body,
 		Type:    types.TEXT,
 	}
 
 	queue.Write(mail)
 
-	helper.Success(c, fiber.StatusCreated, "Email sent successfully")
-	return nil
+	helper.Created(w, "Email sent successfully")
 }
 
-func (e *EmailControler) SendTemplateEmail(ctx *fiber.Ctx) error {
-	var templateEmail types.TemplateEmail
-
-	templateName := ctx.Params("slug")
+func (e *EmailControler) SendTemplateEmail(w http.ResponseWriter, r *http.Request) {
+	templateName := chi.URLParam(r, "slug")
 
 	if templateName == "" {
-		return helper.Err(ctx, fiber.StatusBadRequest, "Invalid template name", nil)
+		helper.Err(w, helper.BadRequestErr, "Invalid template name")
+		return
 	}
 
-	if err := ctx.BodyParser(&templateEmail); err != nil {
-		return helper.Err(ctx, fiber.StatusBadRequest, "Invalid body", err)
+	queue := e.queue
+
+	if queue == nil {
+		slog.Error("Queue not found")
+		helper.Err(w, helper.BadRequestErr, "Queue not found")
+		return
 	}
 
-	if err := e.validate.Struct(templateEmail); err != nil {
-		return helper.Err(ctx, fiber.StatusBadRequest, "Invalid body", err)
+	body, validationErr := validator.MustGetBody[types.TemplateEmail](r)
+
+	if validationErr != nil {
+		helper.Err(w, helper.BadRequestErr, "Invalid body")
+		return
 	}
 
-	template, err := e.templateProvider.ParseTemplate(templateName, templateEmail.Data)
+	template, err := e.templateProvider.ParseTemplate(templateName, body.Data)
 
 	if err != nil {
-		return helper.Err(ctx, fiber.StatusInternalServerError, "Error parsing template", err)
+		helper.Err(w, helper.BadRequestErr, "Error parsing template")
+		return
 	}
 
 	mail := types.Mail{
-		To:      []string{templateEmail.To},
-		Subject: templateEmail.Subject,
+		To:      []string{body.To},
+		Subject: body.Subject,
 		Sender:  config.Hermes.SMTP.Sender,
 		Body:    template.String(),
 		Type:    types.HTML,
 	}
 
-	queue.Queue.Write(mail)
+	queue.Write(mail)
 
-	helper.Success(ctx, fiber.StatusCreated, "Email sent successfully")
-	return nil
+	helper.Created(w, "Email sent successfully")
 }

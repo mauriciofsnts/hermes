@@ -2,46 +2,56 @@ package server
 
 import (
 	"fmt"
+	"log/slog"
+	"net/http"
+	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/go-chi/chi"
+
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/ctx"
 	"github.com/mauriciofsnts/hermes/internal/server/api/health"
 	"github.com/mauriciofsnts/hermes/internal/server/api/notify"
 	"github.com/mauriciofsnts/hermes/internal/server/api/template"
-	"github.com/mauriciofsnts/hermes/internal/server/middleware"
 )
 
-func CreateFiberInstance(providers *ctx.Providers) *fiber.App {
-	app := fiber.New()
+func StartServer() error {
+	r := chi.NewRouter()
 
-	app.Use(cors.New(cors.Config{AllowMethods: "POST,GET,OPTIONS"}))
-	app.Use(func(c *fiber.Ctx) error {
-		c.Locals("providers", providers)
-		return c.Next()
-	})
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Recoverer)
 
-	return app
+	Router(r)
+
+	bindAddr := fmt.Sprintf(":%d", config.Hermes.Http.Port)
+	slog.Info("Starting server on %s", bindAddr, nil)
+
+	server := &http.Server{
+		Addr:         bindAddr,
+		Handler:      r,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+
+	return server.ListenAndServe()
 }
 
-func Listen(app *fiber.App) error {
+func Router(root *chi.Mux) {
+	root.Route("/api/v1", func(r chi.Router) {
+		hc := health.NewHealthController()
+		r.Get("/health", hc.Health)
 
-	api := app.Group("/api/v1")
+		r.Route("/notify", func(r chi.Router) {
+			nc := notify.NewEmailController()
+			r.Post("/", nc.SendPlainTextEmail)
+			r.Post("/{slug}", nc.SendTemplateEmail)
+		})
 
-	healthController := health.NewHealthController()
-	api.Get("/health", healthController.Health)
-
-	notifyGroup := api.Group("/notify")
-	notifyGroup.Use(middleware.Ratelimit)
-
-	emailController := notify.NewEmailController()
-	notifyGroup.Post("/", emailController.SendPlainTextEmail)
-	notifyGroup.Post("/:slug", emailController.SendTemplateEmail)
-
-	templateController := template.NewTemplateController()
-	api.Get("/templates/:slug/raw", templateController.GetRaw)
-	api.Post("/templates", templateController.Create)
-
-	return app.Listen(fmt.Sprintf(":%d", config.Hermes.Http.Port))
+		r.Route("/templates", func(r chi.Router) {
+			tc := template.NewTemplateController()
+			r.Get("/{slug}", tc.GetRaw)
+			r.Post("/", tc.Create)
+		})
+	})
 }

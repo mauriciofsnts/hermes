@@ -6,9 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/ctx"
 
 	"github.com/mauriciofsnts/hermes/internal/providers/queue"
 	"github.com/mauriciofsnts/hermes/internal/providers/smtp"
@@ -18,14 +16,14 @@ import (
 func Start(cfg *config.Config) {
 	setupLog(cfg)
 
-	q, err := queue.NewQueue(cfg)
+	err := queue.NewQueue(cfg)
 
 	if err != nil {
 		slog.Error("Failed to create queue: " + err.Error())
 		os.Exit(1)
 	}
 
-	slog.Debug("Connecting to SMTP server...")
+	slog.Info("Connecting to SMTP server...")
 	err = smtp.Ping()
 
 	for i := 0; i < 2 && err != nil; i++ {
@@ -38,17 +36,10 @@ func Start(cfg *config.Config) {
 		}
 	}
 
-	providers := &ctx.Providers{
-		Config: cfg,
-		Queue:  q,
-	}
+	go queue.StartWorker()
+	go onShutdown()
 
-	app := server.CreateFiberInstance(providers)
-
-	go queue.StartWorker(q)
-	go onShutdown(app)
-
-	err = server.Listen(app)
+	server.StartServer()
 
 	if err != nil {
 		slog.Error("Failed to start HTTP server: " + err.Error())
@@ -56,7 +47,7 @@ func Start(cfg *config.Config) {
 	}
 }
 
-func onShutdown(app *fiber.App) {
+func onShutdown() {
 	stop := make(chan os.Signal, 1)
 
 	//lint:ignore SA1016 i dont know, it just works lol
@@ -64,6 +55,5 @@ func onShutdown(app *fiber.App) {
 	<-stop
 
 	queue.StopWorker()
-	_ = app.Shutdown()
 	os.Exit(0)
 }

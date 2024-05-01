@@ -11,14 +11,15 @@ import (
 )
 
 var Queue types.Queue[types.Mail]
-var cancel context.CancelFunc
+var Cancel context.CancelFunc
 
-func NewQueue(cfg *config.Config) (types.Queue[types.Mail], error) {
+func NewQueue(cfg *config.Config) error {
 	if cfg.Redis != nil {
-		Queue, err := redis.NewRedisProvider()
+		redisQueue, err := redis.NewRedisProvider()
 
 		if err == nil {
-			return Queue, nil
+			Queue = redisQueue
+			return nil
 		}
 	}
 
@@ -26,16 +27,16 @@ func NewQueue(cfg *config.Config) (types.Queue[types.Mail], error) {
 	memoryQueue := memory.NewMemoryProvider()
 	Queue = memoryQueue
 
-	return memoryQueue, nil
+	return nil
 }
 
-func StartWorker(queue types.Queue[types.Mail]) {
+func StartWorker() {
 	var ctx context.Context
 
-	ctx, cancel = context.WithCancel(context.Background())
-	go queue.Read(ctx)
+	ctx, Cancel = context.WithCancel(context.Background())
+	go Queue.Read(ctx)
 }
 
 func StopWorker() {
-	cancel()
+	Cancel()
 }
