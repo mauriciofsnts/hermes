@@ -50,7 +50,7 @@ Simplifies the setup of customizable email templates through Hermes APIs. With t
 
 ### Send emails via API
 
-Send emails through a simple API request. The API supports the `POST /api/v1/notify` method and requires the following parameters in the request body (in JSON format):
+Send emails through a simple API request. The API supports the `POST /api/v1/app/notify` method and requires the following parameters in the request body (in JSON format):
 
 ```json
 {
@@ -62,7 +62,7 @@ Send emails through a simple API request. The API supports the `POST /api/v1/not
 
 or with template:
 
-`POST /api/v1/notify/:slug`
+`POST /api/v1/app/notify/:slug`
 
 ```json
 {
@@ -172,7 +172,7 @@ docker-compose up
 
 4. Wait until Docker Compose builds the images and starts the containers. You will see the service logs in the terminal.
 
-5. The API will be available at `http://127.0.0.1:8293/api/send-email`. You can send POST requests to this endpoint to send emails.
+5. The API will be available at `http://127.0.0.1:8293/api/app/notify`. You can send POST requests to this endpoint to send emails.
 
 6. To stop the service, press `Ctrl+C` in the terminal and execute the following command to stop and remove the containers:
 

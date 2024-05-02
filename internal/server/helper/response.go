@@ -1,11 +1,41 @@
 package helper
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"encoding/json"
+	"net/http"
+)
 
-func Err(ctx *fiber.Ctx, statusCode int, message string, err error) error {
-	return ctx.Status(statusCode).JSON(fiber.Map{"message": message, "error": err.Error()})
+func Ok[T any](w http.ResponseWriter, detail T) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(detail)
 }
 
-func Success(ctx *fiber.Ctx, statusCode int, data any) error {
-	return ctx.Status(statusCode).JSON(fiber.Map{"data": data})
+func Created[T any](w http.ResponseWriter, detail T) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(detail)
+}
+
+func Err(
+	w http.ResponseWriter,
+	error ErrorType,
+	message string,
+) {
+	DetailedError(w, error, map[string]string{
+		"message": message,
+	})
+}
+
+func DetailedError[T any](
+	w http.ResponseWriter,
+	error ErrorType,
+	detail T,
+) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(error.StatusCode)
+	_ = json.NewEncoder(w).Encode(Error[T]{
+		Error:  error.Name,
+		Detail: detail,
+	})
 }

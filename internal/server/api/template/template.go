@@ -3,15 +3,17 @@ package template
 import (
 	"bytes"
 	"encoding/base64"
+	"net/http"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/go-chi/chi"
 	"github.com/mauriciofsnts/hermes/internal/providers/template"
 	"github.com/mauriciofsnts/hermes/internal/server/helper"
+	"github.com/mauriciofsnts/hermes/internal/server/validator"
 )
 
 type TemplateControllerInterface interface {
-	Create(c *fiber.Ctx) (string, error)
-	Delete(c *fiber.Ctx) error
+	Create(w http.ResponseWriter, r *http.Request)
+	Delete(w http.ResponseWriter, r *http.Request)
 	ParseTemplate(name string, content map[string]any) (*bytes.Buffer, error)
 }
 
@@ -25,48 +27,55 @@ func NewTemplateController() *TemplateController {
 	}
 }
 
-func (c *TemplateController) Create(ctx *fiber.Ctx) error {
-	payload := struct {
-		Content string `json:"content"`
-		Name    string `json:"name"`
-	}{}
-
-	if err := ctx.BodyParser(&payload); err != nil {
-		return helper.Err(ctx, fiber.StatusBadRequest, "invalid request body", err)
-	}
-
-	parsedContent, err := base64.StdEncoding.DecodeString(payload.Content)
-
-	if err != nil {
-		return helper.Err(ctx, fiber.StatusBadRequest, "failed to decode content", err)
-	}
-
-	if c.templateProvider.Exists(payload.Name) {
-		return helper.Err(ctx, fiber.StatusBadRequest, "template already exists", nil)
-	}
-
-	err = c.templateProvider.Create(payload.Name, []byte(parsedContent))
-
-	if err != nil {
-		return helper.Err(ctx, fiber.StatusInternalServerError, "failed to create template", err)
-	}
-
-	return helper.Success(ctx, fiber.StatusCreated, "template created successfully")
+type CreateTemplateBody struct {
+	Name    string `json:"name" validate:"required"`
+	Content string `json:"content" validate:"required"`
 }
 
-func (c *TemplateController) GetRaw(ctx *fiber.Ctx) error {
-	id := ctx.Params("slug")
+func (c *TemplateController) Create(w http.ResponseWriter, r *http.Request) {
+	body, validationErr := validator.MustGetBody[CreateTemplateBody](r)
+
+	if validationErr != nil {
+		helper.DetailedError(w, helper.ValidationErr, validationErr.Details)
+		return
+	}
+
+	parsedContent, err := base64.StdEncoding.DecodeString(body.Content)
+
+	if err != nil {
+		helper.Err(w, helper.BadRequestErr, "Invalid content")
+		return
+	}
+
+	if c.templateProvider.Exists(body.Name) {
+		helper.Err(w, helper.BadRequestErr, "template already exists")
+		return
+	}
+
+	err = c.templateProvider.Create(body.Name, []byte(parsedContent))
+
+	if err != nil {
+		helper.Err(w, helper.InternalServerErr, "failed to create template")
+		return
+	}
+
+	helper.Created(w, "template created successfully")
+}
+
+func (c *TemplateController) GetRaw(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "slug")
 
 	if id == "" {
-		return helper.Err(ctx, fiber.StatusBadRequest, "slug is required", nil)
+		helper.Err(w, helper.BadRequestErr, "slug is required")
+		return
 	}
 
 	html, err := c.templateProvider.Get(id)
 
 	if err != nil {
-		return helper.Err(ctx, fiber.StatusInternalServerError, "failed to get template", err)
+		helper.Err(w, helper.InternalServerErr, "failed to get template")
+		return
 	}
 
-	ctx.Context().SetContentType("text/html")
-	return ctx.Send(html)
+	w.Write(html)
 }

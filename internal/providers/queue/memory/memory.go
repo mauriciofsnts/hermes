@@ -35,6 +35,7 @@ func (m *MemoryQueue[T]) Read(ctx context.Context) {
 }
 
 func (m *MemoryQueue[T]) Write(email types.Mail) error {
+	slog.Debug("Writing email to memory")
 	m.email <- email
 	return nil
 }

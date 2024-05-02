@@ -2,17 +2,17 @@ package health
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/alexliesenfeld/health"
-	"github.com/gofiber/fiber/v2"
 	"github.com/mauriciofsnts/hermes/internal/providers/queue"
 	"github.com/mauriciofsnts/hermes/internal/providers/smtp"
 	"github.com/mauriciofsnts/hermes/internal/server/helper"
 )
 
 type HealthControllerInterface interface {
-	Health(c *fiber.Ctx) error
+	Health(w http.ResponseWriter, r *http.Request)
 }
 
 type HealthController struct {
@@ -60,14 +60,12 @@ func getChecker() health.Checker {
 	return checker
 }
 
-func (h *HealthController) Health(c *fiber.Ctx) error {
+func (h *HealthController) Health(w http.ResponseWriter, r *http.Request) {
 	result := h.checker.Check(context.Background())
 
 	if result.Status == health.StatusUp {
-		helper.Success(c, fiber.StatusOK, result)
+		helper.Ok(w, result)
 	} else {
-		c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Service unavailable", "detail": result})
+		helper.DetailedError(w, helper.InternalServerErr, "Service unavailable")
 	}
-
-	return nil
 }
