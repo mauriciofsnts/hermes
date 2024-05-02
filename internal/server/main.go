@@ -13,6 +13,7 @@ import (
 	"github.com/mauriciofsnts/hermes/internal/server/api/health"
 	"github.com/mauriciofsnts/hermes/internal/server/api/notify"
 	"github.com/mauriciofsnts/hermes/internal/server/api/template"
+	hermesMiddleware "github.com/mauriciofsnts/hermes/internal/server/middleware"
 )
 
 func StartServer() error {
@@ -42,16 +43,20 @@ func Router(root *chi.Mux) {
 		hc := health.NewHealthController()
 		r.Get("/health", hc.Health)
 
-		r.Route("/notify", func(r chi.Router) {
-			nc := notify.NewEmailController()
-			r.Post("/", nc.SendPlainTextEmail)
-			r.Post("/{slug}", nc.SendTemplateEmail)
-		})
+		r.Route("/app", func(r chi.Router) {
+			r.Use(hermesMiddleware.AuthMiddleware)
 
-		r.Route("/templates", func(r chi.Router) {
-			tc := template.NewTemplateController()
-			r.Get("/{slug}", tc.GetRaw)
-			r.Post("/", tc.Create)
+			r.Route("/notify", func(r chi.Router) {
+				nc := notify.NewEmailController()
+				r.Post("/", nc.SendPlainTextEmail)
+				r.Post("/{slug}", nc.SendTemplateEmail)
+			})
+
+			r.Route("/templates", func(r chi.Router) {
+				tc := template.NewTemplateController()
+				r.Get("/{slug}", tc.GetRaw)
+				r.Post("/", tc.Create)
+			})
 		})
 	})
 }
