@@ -5,12 +5,12 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/mauriciofsnts/hermes/internal/server/helper"
+	"github.com/mauriciofsnts/hermes/internal/server/api"
 )
 
 type APIBodyValidationError struct {
 	Details any
-	Error   helper.ErrorType
+	Error   api.ErrorType
 }
 
 func MustGetBody[T any](r *http.Request) (T, *APIBodyValidationError) {
@@ -20,7 +20,7 @@ func MustGetBody[T any](r *http.Request) (T, *APIBodyValidationError) {
 	if err != nil {
 		slog.Error("Failed to decode body", "err", err)
 		return body, &APIBodyValidationError{
-			Error:   helper.BadRequestErr,
+			Error:   api.BadRequestErr,
 			Details: map[string]string{"message": err.Error()},
 		}
 	}
@@ -29,7 +29,7 @@ func MustGetBody[T any](r *http.Request) (T, *APIBodyValidationError) {
 
 	if len(validationErrors) > 0 {
 		return body, &APIBodyValidationError{
-			Error:   helper.ValidationErr,
+			Error:   api.ValidationErr,
 			Details: validationErrors,
 		}
 	}

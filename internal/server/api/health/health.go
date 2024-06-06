@@ -5,32 +5,19 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/alexliesenfeld/health"
+	healthCheck "github.com/alexliesenfeld/health"
 	"github.com/mauriciofsnts/hermes/internal/providers/queue"
 	"github.com/mauriciofsnts/hermes/internal/providers/smtp"
-	"github.com/mauriciofsnts/hermes/internal/server/helper"
+	"github.com/mauriciofsnts/hermes/internal/server/api"
 )
 
-type HealthControllerInterface interface {
-	Health(w http.ResponseWriter, r *http.Request)
-}
+func (c *HealthController) GetHealth(r *http.Request) api.Response {
 
-type HealthController struct {
-	checker health.Checker
-}
+	statusChecker := healthCheck.NewChecker(
+		healthCheck.WithCacheDuration(1*time.Second),
+		healthCheck.WithTimeout(10*time.Second),
 
-func NewHealthController() *HealthController {
-	return &HealthController{
-		checker: getChecker(),
-	}
-}
-
-func getChecker() health.Checker {
-	checker := health.NewChecker(
-		health.WithCacheDuration(1*time.Second),
-		health.WithTimeout(10*time.Second),
-
-		health.WithCheck(health.Check{
+		healthCheck.WithCheck(healthCheck.Check{
 			Name: "queue",
 			Check: func(ctx context.Context) error {
 				_, err := queue.Queue.Ping()
@@ -43,7 +30,7 @@ func getChecker() health.Checker {
 			},
 		}),
 
-		health.WithPeriodicCheck(15*time.Second, 3*time.Second, health.Check{
+		healthCheck.WithPeriodicCheck(15*time.Second, 3*time.Second, healthCheck.Check{
 			Name: "smtp",
 			Check: func(ctx context.Context) error {
 				err := smtp.Ping()
@@ -55,17 +42,11 @@ func getChecker() health.Checker {
 				return nil
 			},
 		}),
-	)
+	).Check(context.Background())
 
-	return checker
-}
-
-func (h *HealthController) Health(w http.ResponseWriter, r *http.Request) {
-	result := h.checker.Check(context.Background())
-
-	if result.Status == health.StatusUp {
-		helper.Ok(w, result)
+	if statusChecker.Status == healthCheck.StatusUp {
+		return api.Ok(statusChecker)
 	} else {
-		helper.DetailedError(w, helper.InternalServerErr, "Service unavailable")
+		return api.DetailedError(api.InternalServerErr, statusChecker)
 	}
 }
