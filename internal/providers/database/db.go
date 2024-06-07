@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"log/slog"
 	"strconv"
 
 	"github.com/joho/godotenv"
@@ -27,6 +28,7 @@ func SetupConnection() *gorm.DB {
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
+		slog.Error("Failed to connect to database", err)
 		panic("Failed to connect to database")
 	}
 
