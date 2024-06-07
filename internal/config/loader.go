@@ -50,6 +50,9 @@ func ensureNotNil(cfg *Config) {
 	if cfg.Apps == nil {
 		cfg.Apps = make(map[string]*AppConfig)
 	}
+	if cfg.PG == nil {
+		cfg.PG = &PGConfig{}
+	}
 	// if cfg.Redict == nil {
 	// 	cfg.Redict = &RedictConfig{}
 	// }

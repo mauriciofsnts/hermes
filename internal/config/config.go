@@ -4,6 +4,7 @@ import "log/slog"
 
 type Config struct {
 	SMTP  SMTPConfig
+	PG    *PGConfig
 	Http  *HTTPConfig
 	Log   *LogConfig
 	Redis *RedisConfig
@@ -49,4 +50,14 @@ type LogConfig struct {
 	Level      slog.Level
 	Type       LogType
 	ShowSource bool
+}
+
+type PGConfig struct {
+	Migrate  bool
+	Host     string
+	Port     int
+	User     string
+	Password string
+	SSLMode  string
+	DBName   string
 }

@@ -1,7 +1,6 @@
 package notification
 
 import (
-	"github.com/mauriciofsnts/hermes/internal/providers/queue"
 	"github.com/mauriciofsnts/hermes/internal/providers/template"
 	"github.com/mauriciofsnts/hermes/internal/server/api"
 	"github.com/mauriciofsnts/hermes/internal/types"
@@ -12,10 +11,10 @@ type EmailController struct {
 	queue    types.Queue[types.Mail]
 }
 
-func NewEmailController() *EmailController {
+func NewEmailController(template template.TemplateProvider, queue types.Queue[types.Mail]) *EmailController {
 	return &EmailController{
-		provider: template.NewTemplateService(),
-		queue:    queue.Queue,
+		provider: template,
+		queue:    queue,
 	}
 }
 

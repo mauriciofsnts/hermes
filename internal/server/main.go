@@ -10,17 +10,18 @@ import (
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/mauriciofsnts/hermes/internal/config"
+	"github.com/mauriciofsnts/hermes/internal/providers"
 	"github.com/mauriciofsnts/hermes/internal/server/router"
 )
 
-func StartServer() error {
+func StartServer(providers *providers.Providers) error {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Recoverer)
 
-	router.RouteApp(r)
+	router.RouteApp(r, providers)
 
 	bindAddr := fmt.Sprintf(":%d", config.Hermes.Http.Port)
 	slog.Info("Starting server on %s", bindAddr, nil)

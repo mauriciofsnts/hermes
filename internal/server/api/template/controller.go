@@ -9,9 +9,9 @@ type TemplateController struct {
 	provider template.TemplateProvider
 }
 
-func NewTemplateController() *TemplateController {
+func NewTemplateController(storage template.TemplateProvider) *TemplateController {
 	return &TemplateController{
-		provider: template.NewTemplateService(),
+		provider: storage,
 	}
 }
 

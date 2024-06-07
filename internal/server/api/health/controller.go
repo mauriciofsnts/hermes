@@ -1,11 +1,18 @@
 package health
 
-import "github.com/mauriciofsnts/hermes/internal/server/api"
+import (
+	"github.com/mauriciofsnts/hermes/internal/server/api"
+	"github.com/mauriciofsnts/hermes/internal/types"
+)
 
-type HealthController struct{}
+type HealthController struct {
+	queue types.Queue[types.Mail]
+}
 
-func NewHealthController() *HealthController {
-	return &HealthController{}
+func NewHealthController(queue types.Queue[types.Mail]) *HealthController {
+	return &HealthController{
+		queue: queue,
+	}
 }
 
 var _ api.Controller = &HealthController{}

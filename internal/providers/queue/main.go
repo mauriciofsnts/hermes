@@ -10,31 +10,28 @@ import (
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
 
-var Queue types.Queue[types.Mail]
 var Cancel context.CancelFunc
 
-func NewQueue(cfg *config.Config) error {
+func NewQueue(cfg *config.Config) (types.Queue[types.Mail], error) {
 	if cfg.Redis != nil {
 		redisQueue, err := redis.NewRedisProvider()
 
 		if err == nil {
-			Queue = redisQueue
-			return nil
+
+			return redisQueue, nil
 		}
 	}
 
 	slog.Warn("Using memory queue, because no queue provider was found")
 	memoryQueue := memory.NewMemoryProvider()
-	Queue = memoryQueue
-
-	return nil
+	return memoryQueue, nil
 }
 
-func StartWorker() {
+func StartWorker(queue types.Queue[types.Mail]) {
 	var ctx context.Context
 
 	ctx, Cancel = context.WithCancel(context.Background())
-	go Queue.Read(ctx)
+	go queue.Read(ctx)
 }
 
 func StopWorker() {

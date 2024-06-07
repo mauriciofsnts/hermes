@@ -6,7 +6,6 @@ import (
 	"time"
 
 	healthCheck "github.com/alexliesenfeld/health"
-	"github.com/mauriciofsnts/hermes/internal/providers/queue"
 	"github.com/mauriciofsnts/hermes/internal/providers/smtp"
 	"github.com/mauriciofsnts/hermes/internal/server/api"
 )
@@ -20,7 +19,7 @@ func (c *HealthController) GetHealth(r *http.Request) api.Response {
 		healthCheck.WithCheck(healthCheck.Check{
 			Name: "queue",
 			Check: func(ctx context.Context) error {
-				_, err := queue.Queue.Ping()
+				_, err := c.queue.Ping()
 
 				if err != nil {
 					return err
