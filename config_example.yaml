@@ -39,3 +39,17 @@ redis:
   password: "password"
   # redis topic
   topic: hermes
+
+pg:
+  # migrate on start
+  migrate: false
+  # postgresql address
+  host: localhost
+  # postgresql port
+  port: 5432
+  # username
+  username: postgres
+  # password
+  password: password
+  # db name
+  dbname: hermes
