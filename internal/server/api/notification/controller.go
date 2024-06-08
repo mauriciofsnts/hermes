@@ -21,6 +21,5 @@ func NewEmailController(template template.TemplateProvider, queue types.Queue[ty
 var _ api.Controller = &EmailController{}
 
 func (e *EmailController) Route(r api.Router) {
-	r.Post("/email/plain", e.PlainTextNotification)
-	r.Post("/email/template", e.HtmlTemplateNotification)
+	r.Post("/notification", e.Notify)
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/providers"
 
-	"github.com/mauriciofsnts/hermes/internal/providers/database"
 	q "github.com/mauriciofsnts/hermes/internal/providers/queue"
 	"github.com/mauriciofsnts/hermes/internal/providers/smtp"
 	"github.com/mauriciofsnts/hermes/internal/providers/template"
@@ -43,7 +42,7 @@ func Start(cfg *config.Config) {
 	go onShutdown()
 
 	providers := &providers.Providers{
-		DB:      database.SetupConnection(),
+		// DB:      database.SetupConnection(),
 		Queue:   queue,
 		Storage: template.NewTemplateService(),
 	}

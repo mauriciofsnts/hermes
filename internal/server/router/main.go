@@ -1,14 +1,14 @@
 package router
 
 import (
+	"log/slog"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/mauriciofsnts/hermes/internal/providers"
 	"github.com/mauriciofsnts/hermes/internal/server/api"
 	"github.com/mauriciofsnts/hermes/internal/server/api/health"
 	"github.com/mauriciofsnts/hermes/internal/server/api/notification"
 	"github.com/mauriciofsnts/hermes/internal/server/api/template"
-
-	hermesMiddleware "github.com/mauriciofsnts/hermes/internal/server/middleware"
 )
 
 func RouteApp(root *chi.Mux, provider *providers.Providers) {
@@ -20,8 +20,8 @@ func routeAPI(providers *providers.Providers) func(chi.Router) {
 		r.Route("/health", asChiRouter(routeHealth(providers)))
 
 		r.Route("/app", func(r chi.Router) {
-			r.Use(hermesMiddleware.AuthMiddleware)
-
+			slog.Info("app route")
+			// r.Use(hermesMiddleware.AuthMiddleware)
 			r.Route("/notify", asChiRouter(routeNotify(providers)))
 			r.Route("/templates", asChiRouter(routeTemplate(providers)))
 		})
