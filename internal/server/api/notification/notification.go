@@ -5,13 +5,16 @@ import (
 	"log/slog"
 	"net/http"
 
+	disgo "github.com/disgoorg/disgo/discord"
 	"github.com/mauriciofsnts/hermes/internal/config"
+	"github.com/mauriciofsnts/hermes/internal/providers/discord"
 	"github.com/mauriciofsnts/hermes/internal/server/api"
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
 
 func (e *EmailController) Notify(r *http.Request) api.Response {
-	queue := e.queue
+
+	queue := e.Queue
 
 	if queue == nil {
 		slog.Error("Queue is not running or not found")
@@ -31,13 +34,13 @@ func (e *EmailController) Notify(r *http.Request) api.Response {
 	for _, recipient := range body.Recipients {
 		switch recipient.Type {
 		case types.MAIL:
-			found := e.provider.Exists(body.TemplateID)
+			found := e.Provider.Exists(body.TemplateID)
 
 			if !found {
 				return api.Err(api.BadRequestErr, "Template not found")
 			}
 
-			template, err := e.provider.ParseHtmlTemplate(body.TemplateID, recipient.Data)
+			template, err := e.Provider.ParseHtmlTemplate(body.TemplateID, recipient.Data)
 
 			if err != nil {
 				slog.Error("Failed to parse template", err)
@@ -45,7 +48,7 @@ func (e *EmailController) Notify(r *http.Request) api.Response {
 			}
 
 			if recipient.Data["to"] == nil {
-				return api.Err(api.BadRequestErr, "Recipient email not found")
+				return api.Err(api.BadRequestErr, "[to] field is required")
 			}
 
 			to, ok := recipient.Data["to"].(string)
@@ -62,7 +65,20 @@ func (e *EmailController) Notify(r *http.Request) api.Response {
 				Type:    types.HTML,
 			})
 		case types.DISCORD:
-			// Implement Discord notification
+			apiKey := r.Header.Get("X-API-KEY")
+			client, err := discord.Connect(apiKey)
+
+			if err != nil {
+				return api.Err(api.BadRequestErr, "Failed to connect to Discord")
+			}
+
+			embed := disgo.NewEmbedBuilder().SetTitle(body.Subject)
+
+			for k, v := range recipient.Data {
+				embed.AddField(k, v.(string), false)
+			}
+
+			discord.SendWebhook(client, embed.Build())
 		default:
 			return api.Err(api.BadRequestErr, "Recipient type not found")
 		}
@@ -72,6 +88,9 @@ func (e *EmailController) Notify(r *http.Request) api.Response {
 	for _, notification := range notifications {
 		err = queue.Write(notification)
 		// save on db to try again later
+		if err != nil {
+			slog.Error("Failed to write notification to queue", err)
+		}
 	}
 
 	return api.Created("Notification registered successfully")

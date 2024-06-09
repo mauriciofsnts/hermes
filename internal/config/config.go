@@ -36,6 +36,12 @@ type AppConfig struct {
 	APIKey            string
 	AllowedOrigins    []string
 	LimitPerIPPerHour int
+	Discord           *DiscordWebhook
+}
+
+type DiscordWebhook struct {
+	Token string
+	ID    string
 }
 
 type LogType string

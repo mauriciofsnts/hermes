@@ -7,14 +7,14 @@ import (
 )
 
 type EmailController struct {
-	provider template.TemplateProvider
-	queue    types.Queue[types.Mail]
+	Provider template.TemplateProvider
+	Queue    types.Queue[types.Mail]
 }
 
 func NewEmailController(template template.TemplateProvider, queue types.Queue[types.Mail]) *EmailController {
 	return &EmailController{
-		provider: template,
-		queue:    queue,
+		Provider: template,
+		Queue:    queue,
 	}
 }
 
