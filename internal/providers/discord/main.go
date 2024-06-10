@@ -10,7 +10,6 @@ import (
 	"github.com/mauriciofsnts/hermes/internal/config"
 )
 
-// map api key +discord.client
 var discordClients = make(map[string]webhook.Client)
 
 func Connect(key string) (webhook.Client, error) {

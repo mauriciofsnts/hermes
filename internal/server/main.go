@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 
 	chi_middleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/mauriciofsnts/hermes/internal/config"
@@ -22,6 +23,7 @@ func StartServer(providers *providers.Providers) error {
 	r.Use(chi_middleware.RealIP)
 	r.Use(chi_middleware.Recoverer)
 	r.Use(middleware.LoggerMiddleware)
+	r.Use(cors.Handler(middleware.CorsConfig))
 
 	router.RouteApp(r, providers)
 

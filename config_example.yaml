@@ -9,6 +9,10 @@ log:
 http:
   # http api bind port
   port: 3000
+  # allowed origins
+  allowedOrigins:
+    - "http://localhost:3000"
+    - "http://localhost:8080"
 
 smtp:
   # smtp server address

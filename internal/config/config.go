@@ -20,7 +20,8 @@ type RedisConfig struct {
 }
 
 type HTTPConfig struct {
-	Port int
+	Port           int
+	AllowedOrigins []string
 }
 
 type SMTPConfig struct {
