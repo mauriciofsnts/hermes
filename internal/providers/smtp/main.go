@@ -11,13 +11,7 @@ import (
 )
 
 func SendEmail(email *types.Mail) error {
-	var msg string
-
-	if email.Type == types.HTML {
-		msg = buildHTMLMessage(*email)
-	} else {
-		msg = buildTextMessage(*email)
-	}
+	var msg = buildHTMLMessage(*email)
 
 	auth := getAuth()
 	addr := getAddr()
@@ -60,15 +54,6 @@ func getAuth() smtp.Auth {
 func buildHTMLMessage(mail types.Mail) string {
 	msg := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\r\n"
 	msg += fmt.Sprintf("From: %s\r\n", mail.Sender)
-	msg += fmt.Sprintf("To: %s\r\n", strings.Join(mail.To, ";"))
-	msg += fmt.Sprintf("Subject: %s\r\n", mail.Subject)
-	msg += fmt.Sprintf("\r\n%s\r\n", mail.Body)
-
-	return msg
-}
-
-func buildTextMessage(mail types.Mail) string {
-	msg := fmt.Sprintf("From: %s\r\n", mail.Sender)
 	msg += fmt.Sprintf("To: %s\r\n", strings.Join(mail.To, ";"))
 	msg += fmt.Sprintf("Subject: %s\r\n", mail.Subject)
 	msg += fmt.Sprintf("\r\n%s\r\n", mail.Body)

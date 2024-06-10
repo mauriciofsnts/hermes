@@ -1,15 +1,16 @@
 package health
 
 import (
+	"github.com/mauriciofsnts/hermes/internal/providers/queue/worker"
 	"github.com/mauriciofsnts/hermes/internal/server/api"
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
 
 type HealthController struct {
-	queue types.Queue[types.Mail]
+	queue worker.Queue[types.Mail]
 }
 
-func NewHealthController(queue types.Queue[types.Mail]) *HealthController {
+func NewHealthController(queue worker.Queue[types.Mail]) *HealthController {
 	return &HealthController{
 		queue: queue,
 	}

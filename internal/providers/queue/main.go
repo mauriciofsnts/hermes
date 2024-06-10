@@ -7,17 +7,17 @@ import (
 	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/providers/queue/memory"
 	"github.com/mauriciofsnts/hermes/internal/providers/queue/redis"
+	"github.com/mauriciofsnts/hermes/internal/providers/queue/worker"
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
 
 var Cancel context.CancelFunc
 
-func NewQueue(cfg *config.Config) (types.Queue[types.Mail], error) {
+func NewQueue(cfg *config.Config) (worker.Queue[types.Mail], error) {
 	if cfg.Redis != nil {
 		redisQueue, err := redis.NewRedisProvider()
 
 		if err == nil {
-
 			return redisQueue, nil
 		}
 	}
@@ -27,7 +27,7 @@ func NewQueue(cfg *config.Config) (types.Queue[types.Mail], error) {
 	return memoryQueue, nil
 }
 
-func StartWorker(queue types.Queue[types.Mail]) {
+func StartWorker(queue worker.Queue[types.Mail]) {
 	var ctx context.Context
 
 	ctx, Cancel = context.WithCancel(context.Background())

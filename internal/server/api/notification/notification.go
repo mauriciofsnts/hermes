@@ -5,9 +5,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	disgo "github.com/disgoorg/disgo/discord"
-	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/providers/discord"
 	"github.com/mauriciofsnts/hermes/internal/server/api"
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
@@ -34,51 +31,18 @@ func (e *EmailController) Notify(r *http.Request) api.Response {
 	for _, recipient := range body.Recipients {
 		switch recipient.Type {
 		case types.MAIL:
-			found := e.Provider.Exists(body.TemplateID)
-
-			if !found {
-				return api.Err(api.BadRequestErr, "Template not found")
-			}
-
-			template, err := e.Provider.ParseHtmlTemplate(body.TemplateID, recipient.Data)
-
+			notification, err := e.ValidateEmailNotification(body.TemplateID, recipient.Data, body.Subject)
 			if err != nil {
-				slog.Error("Failed to parse template", err)
-				return api.Err(api.BadRequestErr, "Error parsing template")
+				return api.Err(api.BadRequestErr, err.Error())
+			} else {
+				notifications = append(notifications, *notification)
 			}
-
-			if recipient.Data["to"] == nil {
-				return api.Err(api.BadRequestErr, "[to] field is required")
-			}
-
-			to, ok := recipient.Data["to"].(string)
-
-			if !ok {
-				return api.Err(api.BadRequestErr, "Recipient email is not a string")
-			}
-
-			notifications = append(notifications, types.Mail{
-				To:      []string{to},
-				Subject: body.Subject,
-				Sender:  config.Hermes.SMTP.Sender,
-				Body:    template.String(),
-				Type:    types.HTML,
-			})
 		case types.DISCORD:
 			apiKey := r.Header.Get("X-API-KEY")
-			client, err := discord.Connect(apiKey)
-
+			err := e.ValidateDiscordNotification(apiKey, recipient.Data, body.Subject)
 			if err != nil {
-				return api.Err(api.BadRequestErr, "Failed to connect to Discord")
+				return api.Err(api.BadRequestErr, err.Error())
 			}
-
-			embed := disgo.NewEmbedBuilder().SetTitle(body.Subject)
-
-			for k, v := range recipient.Data {
-				embed.AddField(k, v.(string), false)
-			}
-
-			discord.SendWebhook(client, embed.Build())
 		default:
 			return api.Err(api.BadRequestErr, "Recipient type not found")
 		}
