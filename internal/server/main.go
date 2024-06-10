@@ -8,18 +8,20 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/go-chi/chi/v5/middleware"
+	chi_middleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/providers"
+	"github.com/mauriciofsnts/hermes/internal/server/middleware"
 	"github.com/mauriciofsnts/hermes/internal/server/router"
 )
 
 func StartServer(providers *providers.Providers) error {
 	r := chi.NewRouter()
 
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Recoverer)
+	r.Use(chi_middleware.RequestID)
+	r.Use(chi_middleware.RealIP)
+	r.Use(chi_middleware.Recoverer)
+	r.Use(middleware.LoggerMiddleware)
 
 	router.RouteApp(r, providers)
 
