@@ -26,6 +26,9 @@ apps:
   - enabled: true
     apiKey: 7a28c3e0-83e4-426f-89a4-d932cdcadac4
     limitPerIPPerHour: 1
+    discord:
+      token: "discord_webhook_token"
+      id: "discord_webhook_id"
     allowedOrigins:
       - "http://localhost:3000"
       - "http://localhost:8080"
