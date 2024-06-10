@@ -14,6 +14,12 @@ import (
 var discordClients = make(map[string]webhook.Client)
 
 func Connect(key string) (webhook.Client, error) {
+
+	if config.Hermes.AppsByAPIKey[key].Discord == nil {
+		return nil, errors.New("client has no discord configuration")
+
+	}
+
 	webhookId := config.Hermes.AppsByAPIKey[key].Discord.ID
 	webhookToken := config.Hermes.AppsByAPIKey[key].Discord.Token
 

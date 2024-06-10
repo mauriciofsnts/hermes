@@ -67,7 +67,7 @@ func (e *EmailController) ValidateDiscordNotification(apiKey string, data map[st
 	client, err := discord.Connect(apiKey)
 
 	if err != nil {
-		return errors.New("failed to connect to Discord")
+		return errors.New(err.Error())
 	}
 
 	embed := disgo.NewEmbedBuilder().SetTitle(subject)
