@@ -29,7 +29,7 @@ func (c *HealthController) GetHealth(r *http.Request) api.Response {
 			},
 		}),
 
-		healthCheck.WithPeriodicCheck(15*time.Second, 3*time.Second, healthCheck.Check{
+		healthCheck.WithCheck(healthCheck.Check{
 			Name: "smtp",
 			Check: func(ctx context.Context) error {
 				err := smtp.Ping()
