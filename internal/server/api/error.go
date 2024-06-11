@@ -1,4 +1,4 @@
-package helper
+package api
 
 import "net/http"
 
@@ -15,6 +15,7 @@ var (
 	ConflitErr        = ErrorType{"CONFLICT", http.StatusConflict}
 	UnauthorizedErr   = ErrorType{"UNAUTHORIZED", http.StatusUnauthorized}
 	ValidationErr     = ErrorType{"VALIDATION_ERROR", http.StatusUnprocessableEntity}
+	TooFastErr        = ErrorType{"TOO_FAST", http.StatusTooManyRequests}
 )
 
 type Error[T any] struct {

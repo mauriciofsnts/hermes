@@ -50,29 +50,24 @@ Simplifies the setup of customizable email templates through Hermes APIs. With t
 
 ### Send emails via API
 
-Send emails through a simple API request. The API supports the `POST /api/v1/app/notify` method and requires the following parameters in the request body (in JSON format):
+Send emails through a simple API request.
+
+`POST /api/v1/app/notify/notification`
 
 ```json
 {
-  "to": "example@tdl.com",
-  "subject": "Email subject",
-  "body": "Hello, hermes is awesome!"
-}
-```
-
-or with template:
-
-`POST /api/v1/app/notify/:slug`
-
-```json
-{
-  "to": "example@tdl.com",
-  "subject": "Email subject",
-  "templateName": "welcome",
-  "data": {
-    "Content": "Hello, hermes is awesome!",
-    "Link": "https://github.com/mauriciofsnts/hermes"
-  }
+  "templateId": "example",
+  "subject": "A very interesting email",
+  "recipients": [
+    {
+      "type": "mail",
+      "data": {
+        "to": "hermes@tdl.com",
+        "Title": "Hello, hermes is awesome!",
+        "Content": "Hermes is a great service!"
+      }
+    }
+  ]
 }
 ```
 

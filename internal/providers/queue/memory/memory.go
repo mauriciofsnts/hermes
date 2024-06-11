@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/mauriciofsnts/hermes/internal/providers/queue/worker"
 	"github.com/mauriciofsnts/hermes/internal/providers/smtp"
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
@@ -44,7 +45,7 @@ func (m *MemoryQueue[T]) Ping() (string, error) {
 	return "Memory queue is up", nil
 }
 
-func NewMemoryProvider() types.Queue[types.Mail] {
+func NewMemoryProvider() worker.Queue[types.Mail] {
 	return &MemoryQueue[types.Mail]{
 		email: make(chan types.Mail, 10),
 	}

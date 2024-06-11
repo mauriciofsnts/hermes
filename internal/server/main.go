@@ -6,24 +6,26 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 
-	"github.com/go-chi/chi/v5/middleware"
+	chi_middleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/mauriciofsnts/hermes/internal/config"
-	"github.com/mauriciofsnts/hermes/internal/server/api/health"
-	"github.com/mauriciofsnts/hermes/internal/server/api/notify"
-	"github.com/mauriciofsnts/hermes/internal/server/api/template"
-	hermesMiddleware "github.com/mauriciofsnts/hermes/internal/server/middleware"
+	"github.com/mauriciofsnts/hermes/internal/providers"
+	"github.com/mauriciofsnts/hermes/internal/server/middleware"
+	"github.com/mauriciofsnts/hermes/internal/server/router"
 )
 
-func StartServer() error {
+func StartServer(providers *providers.Providers) error {
 	r := chi.NewRouter()
 
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Recoverer)
+	r.Use(chi_middleware.RequestID)
+	r.Use(chi_middleware.RealIP)
+	r.Use(chi_middleware.Recoverer)
+	r.Use(middleware.LoggerMiddleware)
+	r.Use(cors.Handler(middleware.CorsConfig))
 
-	Router(r)
+	router.RouteApp(r, providers)
 
 	bindAddr := fmt.Sprintf(":%d", config.Hermes.Http.Port)
 	slog.Info("Starting server on %s", bindAddr, nil)
@@ -36,27 +38,4 @@ func StartServer() error {
 	}
 
 	return server.ListenAndServe()
-}
-
-func Router(root *chi.Mux) {
-	root.Route("/api/v1", func(r chi.Router) {
-		hc := health.NewHealthController()
-		r.Get("/health", hc.Health)
-
-		r.Route("/app", func(r chi.Router) {
-			r.Use(hermesMiddleware.AuthMiddleware)
-
-			r.Route("/notify", func(r chi.Router) {
-				nc := notify.NewEmailController()
-				r.Post("/", nc.SendPlainTextEmail)
-				r.Post("/{slug}", nc.SendTemplateEmail)
-			})
-
-			r.Route("/templates", func(r chi.Router) {
-				tc := template.NewTemplateController()
-				r.Get("/{slug}", tc.GetRaw)
-				r.Post("/", tc.Create)
-			})
-		})
-	})
 }

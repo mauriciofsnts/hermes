@@ -9,6 +9,10 @@ log:
 http:
   # http api bind port
   port: 3000
+  # allowed origins
+  allowedOrigins:
+    - "http://localhost:3000"
+    - "http://localhost:8080"
 
 smtp:
   # smtp server address
@@ -26,6 +30,9 @@ apps:
   - enabled: true
     apiKey: 7a28c3e0-83e4-426f-89a4-d932cdcadac4
     limitPerIPPerHour: 1
+    discord:
+      token: "discord_webhook_token"
+      id: "discord_webhook_id"
     allowedOrigins:
       - "http://localhost:3000"
       - "http://localhost:8080"
@@ -39,3 +46,17 @@ redis:
   password: "password"
   # redis topic
   topic: hermes
+
+pg:
+  # migrate on start
+  migrate: false
+  # postgresql address
+  host: localhost
+  # postgresql port
+  port: 5432
+  # username
+  username: postgres
+  # password
+  password: password
+  # db name
+  dbname: hermes

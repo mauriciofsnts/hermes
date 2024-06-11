@@ -4,6 +4,7 @@ import "log/slog"
 
 type Config struct {
 	SMTP  SMTPConfig
+	PG    *PGConfig
 	Http  *HTTPConfig
 	Log   *LogConfig
 	Redis *RedisConfig
@@ -19,7 +20,8 @@ type RedisConfig struct {
 }
 
 type HTTPConfig struct {
-	Port int
+	Port           int
+	AllowedOrigins []string
 }
 
 type SMTPConfig struct {
@@ -35,6 +37,12 @@ type AppConfig struct {
 	APIKey            string
 	AllowedOrigins    []string
 	LimitPerIPPerHour int
+	Discord           *DiscordWebhook
+}
+
+type DiscordWebhook struct {
+	Token string
+	ID    string
 }
 
 type LogType string
@@ -49,4 +57,14 @@ type LogConfig struct {
 	Level      slog.Level
 	Type       LogType
 	ShowSource bool
+}
+
+type PGConfig struct {
+	Migrate  bool
+	Host     string
+	Port     int
+	User     string
+	Password string
+	SSLMode  string
+	DBName   string
 }

@@ -7,16 +7,18 @@ import (
 	"syscall"
 
 	"github.com/mauriciofsnts/hermes/internal/config"
+	"github.com/mauriciofsnts/hermes/internal/providers"
 
-	"github.com/mauriciofsnts/hermes/internal/providers/queue"
+	q "github.com/mauriciofsnts/hermes/internal/providers/queue"
 	"github.com/mauriciofsnts/hermes/internal/providers/smtp"
+	"github.com/mauriciofsnts/hermes/internal/providers/template"
 	"github.com/mauriciofsnts/hermes/internal/server"
 )
 
 func Start(cfg *config.Config) {
 	setupLog(cfg)
 
-	err := queue.NewQueue(cfg)
+	queue, err := q.NewQueue(cfg)
 
 	if err != nil {
 		slog.Error("Failed to create queue: " + err.Error())
@@ -36,10 +38,16 @@ func Start(cfg *config.Config) {
 		}
 	}
 
-	go queue.StartWorker()
+	go q.StartWorker(queue)
 	go onShutdown()
 
-	server.StartServer()
+	providers := &providers.Providers{
+		// DB:      database.SetupConnection(),
+		Queue:   queue,
+		Storage: template.NewTemplateService(),
+	}
+
+	server.StartServer(providers)
 
 	if err != nil {
 		slog.Error("Failed to start HTTP server: " + err.Error())
@@ -54,6 +62,6 @@ func onShutdown() {
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGKILL)
 	<-stop
 
-	queue.StopWorker()
+	q.StopWorker()
 	os.Exit(0)
 }

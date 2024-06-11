@@ -12,7 +12,7 @@ type TemplateProvider interface {
 	Get(name string) ([]byte, error)
 	Delete(name string) error
 	Create(name string, content []byte) error
-	ParseTemplate(name string, content map[string]interface{}) (*bytes.Buffer, error)
+	ParseHtmlTemplate(name string, content map[string]interface{}) (*bytes.Buffer, error)
 }
 
 type TemplateService struct {
@@ -39,7 +39,7 @@ func (t *TemplateService) Create(name string, content []byte) error {
 	return os.WriteFile(getPath(name), content, 0600)
 }
 
-func (t *TemplateService) ParseTemplate(name string, content map[string]any) (*bytes.Buffer, error) {
+func (t *TemplateService) ParseHtmlTemplate(name string, content map[string]any) (*bytes.Buffer, error) {
 	html, err := t.Get(name)
 
 	if err != nil {

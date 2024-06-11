@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/mauriciofsnts/hermes/internal/config"
+	"github.com/mauriciofsnts/hermes/internal/providers/queue/worker"
 	"github.com/mauriciofsnts/hermes/internal/providers/smtp"
 	"github.com/mauriciofsnts/hermes/internal/types"
 	"github.com/redis/go-redis/v9"
@@ -27,14 +28,13 @@ func (r *RedisQueue[T]) Read(ctx context.Context) {
 
 	r.consumer = NewConsumer[types.Mail](r.client, "hermes")
 
-	readCh := make(chan types.ReadData[types.Mail])
+	readCh := make(chan ReadData[types.Mail])
 
 	go r.consumer.Read(readCh)
 
 	for {
 		select {
 		case <-ctx.Done():
-			slog.Debug("Stopping redis consumer...")
 			_ = r.consumer.Close()
 			return
 		case data := <-readCh:
@@ -82,7 +82,7 @@ func (r *RedisQueue[T]) Ping() (string, error) {
 	return "Redis is up", nil
 }
 
-func NewRedisProvider() (types.Queue[types.Mail], error) {
+func NewRedisProvider() (worker.Queue[types.Mail], error) {
 	client := NewRedisClient(config.Hermes.Redis.Address, config.Hermes.Redis.Password)
 
 	_, err := client.Ping(ctx).Result()
