@@ -36,6 +36,7 @@ type AppConfig struct {
 	Enabled           bool
 	APIKey            string
 	AllowedOrigins    []string
+	EnabledFeatures   []Feats
 	LimitPerIPPerHour int
 	Discord           *DiscordWebhook
 }
@@ -68,3 +69,10 @@ type PGConfig struct {
 	SSLMode  string
 	DBName   string
 }
+
+type Feats string
+
+const (
+	FeatEmail   Feats = "email"
+	FeatDiscord Feats = "discord"
+)
