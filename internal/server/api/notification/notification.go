@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"slices"
 
+	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/server/api"
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
@@ -27,10 +29,16 @@ func (e *EmailController) Notify(r *http.Request) api.Response {
 	}
 
 	notifications := make([]types.Mail, 0)
+	apiKey := r.Header.Get("x-api-key")
+	client := config.Hermes.AppsByAPIKey[apiKey]
 
 	for _, recipient := range body.Recipients {
 		switch recipient.Type {
 		case types.MAIL:
+			if !slices.Contains(client.EnabledFeatures, "email") {
+				return api.Err(api.BadRequestErr, "Email feature is not enabled")
+			}
+
 			notification, err := e.ValidateEmailNotification(body.TemplateID, recipient.Data, body.Subject)
 			if err != nil {
 				return api.Err(api.BadRequestErr, err.Error())
@@ -38,7 +46,10 @@ func (e *EmailController) Notify(r *http.Request) api.Response {
 				notifications = append(notifications, *notification)
 			}
 		case types.DISCORD:
-			apiKey := r.Header.Get("X-API-KEY")
+			if !slices.Contains(client.EnabledFeatures, "discord") {
+				return api.Err(api.BadRequestErr, "Discord feature is not enabled")
+			}
+
 			err := e.ValidateDiscordNotification(apiKey, recipient.Data, body.Subject)
 			if err != nil {
 				return api.Err(api.BadRequestErr, err.Error())
