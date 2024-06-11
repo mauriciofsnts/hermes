@@ -23,7 +23,12 @@ func StartServer(providers *providers.Providers) error {
 	r.Use(chi_middleware.RealIP)
 	r.Use(chi_middleware.Recoverer)
 	r.Use(middleware.LoggerMiddleware)
-	r.Use(cors.Handler(middleware.CorsConfig))
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins: config.Hermes.Http.AllowedOrigins,
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		MaxAge:         300,
+	}))
 
 	router.RouteApp(r, providers)
 

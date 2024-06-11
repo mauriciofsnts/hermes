@@ -21,7 +21,7 @@ type RedisConfig struct {
 
 type HTTPConfig struct {
 	Port           int
-	AllowedOrigins []string
+	AllowedOrigins []string `yaml:"allowedOrigins"`
 }
 
 type SMTPConfig struct {
