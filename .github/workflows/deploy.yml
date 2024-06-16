@@ -27,9 +27,9 @@ jobs:
       - name: "Login to GitHub Container Registry"
         uses: docker/login-action@v1
         with:
-          registry: ghcr.io
-          username: ${{github.actor}}
-          password: ${{secrets.GITHUB_TOKEN}}
+          registry: rg.mrzt.dev
+          username: ${{secrets.HARBOR_DEPLOY_USERNAME}}
+          password: ${{secrets.HARBOR_DEPLOY_PASSWORD}}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
@@ -37,7 +37,7 @@ jobs:
           file: Dockerfile
           context: .
           push: true
-          tags: ghcr.io/mauriciofsnts/hermes:${{ github.ref_name }}
+          tags: rg.mrzt.dev/internal/hermes:latest
 
       - name: Rollout deployment using k7z
         uses: pauloo27/k7z-rollout@master
