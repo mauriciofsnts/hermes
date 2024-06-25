@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/cors"
 
 	chi_middleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/mauriciofsnts/hermes/internal/config"
@@ -19,16 +18,14 @@ import (
 func StartServer(providers *providers.Providers) error {
 	r := chi.NewRouter()
 
+	for _, origin := range config.Hermes.Http.AllowedOrigins {
+		slog.Info("Allowed origin: %s", origin, nil)
+	}
+
 	r.Use(chi_middleware.RequestID)
 	r.Use(chi_middleware.RealIP)
 	r.Use(chi_middleware.Recoverer)
 	r.Use(middleware.LoggerMiddleware)
-	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins: config.Hermes.Http.AllowedOrigins,
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		MaxAge:         300,
-	}))
 
 	router.RouteApp(r, providers)
 
