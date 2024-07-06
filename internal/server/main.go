@@ -18,11 +18,7 @@ import (
 
 func StartServer(providers *providers.Providers) error {
 	r := chi.NewRouter()
-
-	for _, origin := range config.Hermes.Http.AllowedOrigins {
-		slog.Debug("Allowed origin: %s", "fodase", origin)
-	}
-
+ 
 	r.Use(chi_middleware.RequestID)
 	r.Use(chi_middleware.RealIP)
 	r.Use(chi_middleware.Recoverer)
