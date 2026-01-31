@@ -64,7 +64,7 @@ func (e *EmailController) Notify(r *http.Request) api.Response {
 		err = queue.Write(notification)
 		// save on db to try again later
 		if err != nil {
-			slog.Error("Failed to write notification to queue", err)
+			slog.Error("Failed to write notification to queue", "error", err)
 		}
 	}
 

@@ -29,12 +29,12 @@ func Start(cfg *config.Config) {
 	err = smtp.Ping()
 
 	for i := 0; i < 2 && err != nil; i++ {
-		slog.Warn("Failed to connect to SMTP server, retrying... Error: ", err)
+		slog.Warn("Failed to connect to SMTP server, retrying", "error", err)
 		err = smtp.Ping()
 
 		if i == 1 && err != nil {
-			slog.Error("Failed to connect to SMTP server: %v", err)
-			os.Exit(0)
+			slog.Error("Failed to connect to SMTP server", "error", err)
+			os.Exit(1)
 		}
 	}
 

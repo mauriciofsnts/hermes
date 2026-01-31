@@ -16,6 +16,7 @@ var (
 	UnauthorizedErr   = ErrorType{"UNAUTHORIZED", http.StatusUnauthorized}
 	ValidationErr     = ErrorType{"VALIDATION_ERROR", http.StatusUnprocessableEntity}
 	TooFastErr        = ErrorType{"TOO_FAST", http.StatusTooManyRequests}
+	TooManyReqErr     = ErrorType{"TOO_MANY_REQUESTS", http.StatusTooManyRequests}
 )
 
 type Error[T any] struct {

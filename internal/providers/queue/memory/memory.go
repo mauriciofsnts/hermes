@@ -9,34 +9,44 @@ import (
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
 
+const WorkerPoolSize = 5
+
 type MemoryQueue[T any] struct {
 	email chan types.Mail
 }
 
 func (m *MemoryQueue[T]) Read(ctx context.Context) {
-	slog.Debug("Reading emails from memory")
+	slog.Debug("Starting memory queue workers", "worker_count", WorkerPoolSize)
 
+	for i := 0; i < WorkerPoolSize; i++ {
+		go m.worker(ctx, i)
+	}
+
+	<-ctx.Done()
+	slog.Debug("Context done, stopping memory queue workers")
+}
+
+func (m *MemoryQueue[T]) worker(ctx context.Context, workerID int) {
 	for {
 		select {
 		case <-ctx.Done():
-			// TODO! graceful shutdown
-			slog.Debug("Context done, stopping read emails from memory")
+			slog.Debug("Worker stopping", "worker_id", workerID)
 			return
 		case email := <-m.email:
-			slog.Debug("Sending email..")
+			slog.Debug("Worker processing email", "worker_id", workerID, "to", email.To)
 			err := smtp.SendEmail(&email)
 
-			// TODO! error handling?
 			if err != nil {
-				slog.Error("Error sending email", err)
+				slog.Error("Error sending email", "worker_id", workerID, "to", email.To, "error", err)
+			} else {
+				slog.Info("Email sent successfully", "worker_id", workerID, "to", email.To)
 			}
 		}
 	}
-
 }
 
 func (m *MemoryQueue[T]) Write(email types.Mail) error {
-	slog.Debug("Writing email to memory")
+	slog.Debug("Writing email to memory queue", "to", email.To)
 	m.email <- email
 	return nil
 }
@@ -47,6 +57,6 @@ func (m *MemoryQueue[T]) Ping() (string, error) {
 
 func NewMemoryProvider() worker.Queue[types.Mail] {
 	return &MemoryQueue[types.Mail]{
-		email: make(chan types.Mail, 10),
+		email: make(chan types.Mail, WorkerPoolSize*2),
 	}
 }

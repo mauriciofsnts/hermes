@@ -22,13 +22,14 @@ func SetupConnection() *gorm.DB {
 	port := config.Hermes.PG.Port
 	user := config.Hermes.PG.User
 	dbname := config.Hermes.PG.DBName
+	password := config.Hermes.PG.Password
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", host, user, dbname, strconv.Itoa(port))
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", host, user, password, dbname, strconv.Itoa(port))
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
-		slog.Error("Failed to connect to database", err)
+		slog.Error("Failed to connect to database", "error", err)
 		panic("Failed to connect to database")
 	}
 

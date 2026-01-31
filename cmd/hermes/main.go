@@ -16,7 +16,7 @@ func main() {
 	cfg, err := config.LoadConfigFromFile(DefaultConfigPath)
 
 	if err != nil {
-		slog.Error("failed to load config file: %v", err)
+		slog.Error("failed to load config file", "error", err)
 		os.Exit(1)
 
 	}

@@ -36,6 +36,11 @@ func LoadConfigFromData(data []byte) (*Config, error) {
 		config.AppsByAPIKey[app.APIKey] = app
 	}
 
+	// Validar configuração
+	if err := ValidateConfig(&config); err != nil {
+		return nil, err
+	}
+
 	Hermes = &config
 	return &config, nil
 }
@@ -53,10 +58,4 @@ func ensureNotNil(cfg *Config) {
 	if cfg.PG == nil {
 		cfg.PG = &PGConfig{}
 	}
-	// if cfg.Redict == nil {
-	// 	cfg.Redict = &RedictConfig{}
-	// }
-	// if cfg.Public == nil {
-	// 	cfg.Public = &AppConfig{}
-	// }
 }

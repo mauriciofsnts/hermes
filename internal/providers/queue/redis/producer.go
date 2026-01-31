@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -23,23 +24,23 @@ func NewProducer[T any](client redis.Client, topic string) *Producer[T] {
 
 func (p *Producer[T]) Produce(value T) error {
 	data, err := json.Marshal(value)
-
 	if err != nil {
+		slog.Error("Failed to marshal value for Redis", "topic", p.Topic, "error", err)
 		return err
 	}
 
-	pubsub := p.Client.Subscribe(ctx, p.Topic)
-
-	_, err = pubsub.Receive(ctx)
-
+	result := p.Client.Publish(ctx, p.Topic, data)
+	err = result.Err()
 	if err != nil {
+		slog.Error("Failed to publish to Redis", "topic", p.Topic, "error", err)
 		return err
 	}
 
-	err = p.Client.Publish(ctx, p.Topic, data).Err()
-
-	if err != nil {
-		return err
+	subscribers := result.Val()
+	if subscribers > 0 {
+		slog.Debug("Message published to Redis", "topic", p.Topic, "subscribers", subscribers)
+	} else {
+		slog.Warn("Message published but no subscribers listening", "topic", p.Topic)
 	}
 
 	return nil

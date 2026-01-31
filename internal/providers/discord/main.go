@@ -35,7 +35,7 @@ func Connect(key string) (webhook.Client, error) {
 	id, err := snowflake.Parse(webhookId)
 
 	if err != nil {
-		slog.Error("Error parsing snowflake ID", err)
+		slog.Error("Error parsing snowflake ID", "error", err)
 		return nil, err
 	}
 
@@ -44,12 +44,14 @@ func Connect(key string) (webhook.Client, error) {
 
 }
 
-func SendWebhook(client webhook.Client, embed discord.Embed) {
+func SendWebhook(client webhook.Client, embed discord.Embed) error {
 	message, err := client.CreateEmbeds([]discord.Embed{embed})
 
 	if err != nil {
-		slog.Error("Failed to send webhook: ", err)
+		slog.Error("Failed to send webhook", "error", err)
+		return err
 	}
 
-	slog.Info("Webhook sent: ", message)
+	slog.Debug("Webhook sent", "message", message)
+	return nil
 }

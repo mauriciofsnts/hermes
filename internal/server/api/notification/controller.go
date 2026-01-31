@@ -2,6 +2,7 @@ package notification
 
 import (
 	"errors"
+	"fmt"
 
 	disgo "github.com/disgoorg/disgo/discord"
 	"github.com/mauriciofsnts/hermes/internal/config"
@@ -37,10 +38,22 @@ func (e *EmailController) ValidateEmailNotification(templateId string, data map[
 		return nil, errors.New("template not found")
 	}
 
-	template, err := e.Provider.ParseHtmlTemplate(templateId, data)
+	// Carregar template para validação
+	templateContent, err := e.Provider.(*template.TemplateService).Get(templateId)
+	if err != nil {
+		return nil, errors.New("error loading template")
+	}
+
+	// Validar estrutura do template contra os dados fornecidos
+	if err := template.ValidateTemplateStructure(templateContent, data); err != nil {
+		return nil, err
+	}
+
+	// Renderizar template com validação de campos
+	renderedTemplate, err := e.Provider.ParseHtmlTemplate(templateId, data)
 
 	if err != nil {
-		return nil, errors.New("error parsing template")
+		return nil, errors.New("error parsing template: " + err.Error())
 	}
 
 	if data["to"] == nil {
@@ -57,7 +70,7 @@ func (e *EmailController) ValidateEmailNotification(templateId string, data map[
 		To:      []string{to},
 		Subject: subject,
 		Sender:  config.Hermes.SMTP.Sender,
-		Body:    template.String(),
+		Body:    renderedTemplate.String(),
 	}
 
 	return notification, nil
@@ -73,9 +86,17 @@ func (e *EmailController) ValidateDiscordNotification(apiKey string, data map[st
 	embed := disgo.NewEmbedBuilder().SetTitle(subject)
 
 	for k, v := range data {
-		embed.AddField(k, v.(string), false)
+		strValue, ok := v.(string)
+		if !ok {
+			strValue = fmt.Sprintf("%v", v)
+		}
+		embed.AddField(k, strValue, false)
 	}
 
-	discord.SendWebhook(client, embed.Build())
+	err = discord.SendWebhook(client, embed.Build())
+	if err != nil {
+		return errors.New("failed to send discord webhook: " + err.Error())
+	}
+
 	return nil
 }

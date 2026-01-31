@@ -35,7 +35,6 @@ func (c *ChiRouter) wrap(handler api.WrappedHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		res := handler(r)
 
-		// TODO: avoid clone?
 		for k, v := range res.Header {
 			w.Header().Set(k, v[0])
 		}
@@ -43,6 +42,7 @@ func (c *ChiRouter) wrap(handler api.WrappedHandler) http.HandlerFunc {
 		if res.StatusCode == 0 {
 			slog.Error("Missing response status code", "path", r.URL.Path)
 			res.StatusCode = http.StatusInternalServerError
+			return
 		}
 
 		w.WriteHeader(res.StatusCode)

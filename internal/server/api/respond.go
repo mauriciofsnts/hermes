@@ -84,3 +84,7 @@ func RawErr[T any](err ErrorType, body T) Response {
 		Header:     header,
 	}
 }
+
+func TooManyRequestsErr(message string) Response {
+	return Err(TooManyReqErr, message)
+}

@@ -39,14 +39,14 @@ func (r *RedisQueue[T]) Read(ctx context.Context) {
 			return
 		case data := <-readCh:
 			if data.Err != nil {
-				slog.Error("Failed to read email", data.Err)
+				slog.Error("Failed to read email", "error", data.Err)
 				continue
 			}
 
 			err := smtp.SendEmail(data.Data)
 
 			if err != nil {
-				slog.Error("Failed to send email", err)
+				slog.Error("Failed to send email", "error", err)
 				continue
 			}
 			continue
@@ -64,7 +64,7 @@ func (r *RedisQueue[T]) Write(email types.Mail) error {
 	err := producer.Produce(email)
 
 	if err != nil {
-		slog.Error("Failed to produce email", err)
+		slog.Error("Failed to produce email", "error", err)
 		return err
 	}
 
@@ -72,10 +72,10 @@ func (r *RedisQueue[T]) Write(email types.Mail) error {
 }
 
 func (r *RedisQueue[T]) Ping() (string, error) {
-	_, err := r.client.Ping(ctx).Result()
+	_, err := r.client.Ping(context.Background()).Result()
 
 	if err != nil {
-		slog.Error("Failed to ping redis", err)
+		slog.Error("Failed to ping redis", "error", err)
 		return "", err
 	}
 
@@ -85,10 +85,10 @@ func (r *RedisQueue[T]) Ping() (string, error) {
 func NewRedisProvider() (worker.Queue[types.Mail], error) {
 	client := NewRedisClient(config.Hermes.Redis.Address, config.Hermes.Redis.Password)
 
-	_, err := client.Ping(ctx).Result()
+	_, err := client.Ping(context.Background()).Result()
 
 	if err != nil {
-		slog.Error("Failed to connect to redis", err)
+		slog.Error("Failed to connect to redis", "error", err)
 		return nil, err
 	}
 

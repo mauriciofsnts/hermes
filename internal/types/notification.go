@@ -1,7 +1,5 @@
 package types
 
-type MailType int
-
 type Mail struct {
 	Sender  string
 	To      []string
