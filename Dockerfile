@@ -15,12 +15,18 @@ RUN go mod download
 # Copy source code
 COPY . .
 
+# Install swag for documentation generation
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+
+# Generate Swagger documentation
+RUN swag init -g cmd/hermes/main.go -o docs --parseDependency --parseInternal || true
+
 # Build the binary with optimizations
 # -ldflags: strip debug info and reduce binary size
 # CGO_ENABLED=0: static binary without C dependencies
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -gcflags=all=-l \
-    -ldflags="-w -s -X main.version=$(git describe --tags --always --dirty)" \
+    -ldflags="-w -s" \
     -o hermes \
     ./cmd/hermes
 
