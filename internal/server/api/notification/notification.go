@@ -24,7 +24,7 @@ import (
 //	@Failure		400			{object}	map[string]interface{}		"Invalid request"
 //	@Failure		500			{object}	map[string]interface{}		"Internal server error"
 //	@Security		ApiKeyAuth
-//	@Router			/send [post]
+//	@Router			/api/v1/app/notify/notification [post]
 func (e *EmailController) Notify(r *http.Request) api.Response {
 
 	queue := e.Queue

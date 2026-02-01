@@ -18,7 +18,7 @@ import (
 //	@Produce		json
 //	@Success		200	{object}	map[string]interface{}	"Service is healthy"
 //	@Failure		500	{object}	map[string]interface{}	"Service is unhealthy"
-//	@Router			/health [get]
+//	@Router			/api/v1/health [get]
 func (c *HealthController) GetHealth(r *http.Request) api.Response {
 
 	statusChecker := healthCheck.NewChecker(

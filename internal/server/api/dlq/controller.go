@@ -27,7 +27,7 @@ func NewDLQController(dlq *database.DLQService) *DLQController {
 //	@Success		200			{object}	map[string]interface{}	"DLQ statistics"
 //	@Failure		500			{object}	map[string]interface{}	"Internal server error"
 //	@Security		ApiKeyAuth
-//	@Router			/dlq/stats [get]
+//	@Router			/api/v1/admin/dlq/stats [get]
 func (c *DLQController) GetStats(r *http.Request) api.Response {
 	if c.dlq == nil {
 		return api.Err(api.InternalServerErr, "DLQ service not available")
@@ -51,7 +51,7 @@ func (c *DLQController) GetStats(r *http.Request) api.Response {
 //	@Success		200			{object}	map[string]interface{}	"Pending DLQ items"
 //	@Failure		500			{object}	map[string]interface{}	"Internal server error"
 //	@Security		ApiKeyAuth
-//	@Router			/dlq/pending [get]
+//	@Router			/api/v1/admin/dlq/pending [get]
 func (c *DLQController) GetPending(r *http.Request) api.Response {
 	if c.dlq == nil {
 		return api.Err(api.InternalServerErr, "DLQ service not available")
@@ -78,7 +78,7 @@ func (c *DLQController) GetPending(r *http.Request) api.Response {
 //	@Success		200			{object}	map[string]interface{}	"Failed DLQ items"
 //	@Failure		500			{object}	map[string]interface{}	"Internal server error"
 //	@Security		ApiKeyAuth
-//	@Router			/dlq/failed [get]
+//	@Router			/api/v1/admin/dlq/failed [get]
 func (c *DLQController) GetFailed(r *http.Request) api.Response {
 	if c.dlq == nil {
 		return api.Err(api.InternalServerErr, "DLQ service not available")

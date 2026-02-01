@@ -27,9 +27,13 @@ smtp:
   sender: "admin@mrzt.dev"
 
 apps:
-  - enabled: true
+  my-app:
+    enabled: true
     apiKey: 7a28c3e0-83e4-426f-89a4-d932cdcadac4
-    limitPerIPPerHour: 1
+    limitPerIPPerHour: 1000
+    enabledFeatures:
+      - email
+      - discord
     discord:
       token: "discord_webhook_token"
       id: "discord_webhook_id"

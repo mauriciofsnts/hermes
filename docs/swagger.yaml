@@ -29,7 +29,7 @@ definitions:
 info:
   contact: {}
 paths:
-  /dlq/failed:
+  /api/v1/admin/dlq/failed:
     get:
       description: Returns up to 100 failed items from the Dead Letter Queue
       parameters:
@@ -56,7 +56,7 @@ paths:
       summary: Get failed DLQ items
       tags:
       - DLQ
-  /dlq/pending:
+  /api/v1/admin/dlq/pending:
     get:
       description: Returns up to 100 pending items from the Dead Letter Queue
       parameters:
@@ -83,7 +83,7 @@ paths:
       summary: Get pending DLQ items
       tags:
       - DLQ
-  /dlq/stats:
+  /api/v1/admin/dlq/stats:
     get:
       description: Returns statistics about the Dead Letter Queue (total, pending,
         failed counts)
@@ -111,27 +111,7 @@ paths:
       summary: Get DLQ statistics
       tags:
       - DLQ
-  /health:
-    get:
-      description: Returns the health status of the service including queue and SMTP
-        connectivity
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Service is healthy
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Service is unhealthy
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Check service health
-      tags:
-      - Health
-  /send:
+  /api/v1/app/notify/notification:
     post:
       consumes:
       - application/json
@@ -172,4 +152,24 @@ paths:
       summary: Send notification
       tags:
       - Notification
+  /api/v1/health:
+    get:
+      description: Returns the health status of the service including queue and SMTP
+        connectivity
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service is healthy
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Service is unhealthy
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Check service health
+      tags:
+      - Health
 swagger: "2.0"

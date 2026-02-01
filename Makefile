@@ -14,14 +14,26 @@ dist:
 run: build
 	./$(BINARY_NAME)
 
+.PHONY: start
+start: build setup-config
+	./$(BINARY_NAME)
+
+.PHONY: setup-config
+setup-config:
+	@if [ ! -f "config.yaml" ]; then \
+		echo "📝 Creating config.yaml from config_example.yaml..."; \
+		cp config_example.yaml config.yaml; \
+		echo "✅ config.yaml created"; \
+	fi
+
 .PHONY: test
 test:
 	$(TEST_COMMAND) -cover -parallel 5 -failfast  ./...
 
 .PHONY: test-integration
 test-integration:
-	docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
-	docker-compose -f docker-compose.test.yml down
+	docker compose -f docker-compose.test.yml up --build --abort-on-container-exit
+	docker compose -f docker-compose.test.yml down
 
 .PHONY: tidy
 tidy:
@@ -34,7 +46,7 @@ swagger:
 # auto restart
 .PHONY: dev
 dev:
-	air
+	go tool air
 
 .PHONY: lint
 lint:

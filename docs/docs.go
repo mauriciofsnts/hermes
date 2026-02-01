@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/dlq/failed": {
+        "/api/v1/admin/dlq/failed": {
             "get": {
                 "security": [
                     {
@@ -57,7 +57,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/dlq/pending": {
+        "/api/v1/admin/dlq/pending": {
             "get": {
                 "security": [
                     {
@@ -99,7 +99,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/dlq/stats": {
+        "/api/v1/admin/dlq/stats": {
             "get": {
                 "security": [
                     {
@@ -141,35 +141,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/health": {
-            "get": {
-                "description": "Returns the health status of the service including queue and SMTP connectivity",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Health"
-                ],
-                "summary": "Check service health",
-                "responses": {
-                    "200": {
-                        "description": "Service is healthy",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Service is unhealthy",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/send": {
+        "/api/v1/app/notify/notification": {
             "post": {
                 "security": [
                     {
@@ -222,6 +194,34 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/health": {
+            "get": {
+                "description": "Returns the health status of the service including queue and SMTP connectivity",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Check service health",
+                "responses": {
+                    "200": {
+                        "description": "Service is healthy",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Service is unhealthy",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
