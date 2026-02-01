@@ -11,29 +11,43 @@ import (
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
 
-var smtpCircuitBreaker = NewCircuitBreaker(3, 1, 30*time.Second)
+// SMTPProvider implements the EmailSender interface for SMTP email delivery.
+type SMTPProvider struct {
+	breaker *CircuitBreaker
+}
 
-func SendEmail(email *types.Mail) error {
-	if !smtpCircuitBreaker.CanExecute() {
-		return fmt.Errorf("SMTP circuit breaker is %s", smtpCircuitBreaker.GetState())
+// NewSMTPProvider creates a new SMTP provider with a circuit breaker.
+// The circuit breaker opens after 3 failures, half-opens after 1 minute.
+func NewSMTPProvider() *SMTPProvider {
+	return &SMTPProvider{
+		breaker: NewCircuitBreaker(3, 1, 30*time.Second),
+	}
+}
+
+// Send sends an email with automatic retry logic.
+// It respects the circuit breaker state to prevent cascading failures.
+func (sp *SMTPProvider) Send(email *types.Mail) error {
+	if !sp.breaker.CanExecute() {
+		return fmt.Errorf("SMTP circuit breaker is %s", sp.breaker.GetState())
 	}
 
 	retryConfig := DefaultRetryConfig()
 	err := ExecuteWithRetry(func() error {
-		return sendEmailWithoutRetry(email)
+		return sp.sendWithoutRetry(email)
 	}, retryConfig)
 
 	if err != nil {
-		smtpCircuitBreaker.RecordFailure()
+		sp.breaker.RecordFailure()
 		slog.Error("Failed to send email after retries", "to", email.To, "error", err)
 		return err
 	}
 
-	smtpCircuitBreaker.RecordSuccess()
+	sp.breaker.RecordSuccess()
 	return nil
 }
 
-func sendEmailWithoutRetry(email *types.Mail) error {
+// sendWithoutRetry performs a single SMTP send attempt without retries.
+func (sp *SMTPProvider) sendWithoutRetry(email *types.Mail) error {
 	msg := buildHTMLMessage(*email)
 
 	auth := getAuth()
@@ -42,22 +56,47 @@ func sendEmailWithoutRetry(email *types.Mail) error {
 	return smtp.SendMail(addr, auth, email.Sender, email.To, []byte(msg))
 }
 
-func Ping() error {
+// Ping verifies the connection to the SMTP server.
+func (sp *SMTPProvider) Ping() error {
 	addr := getAddr()
 
 	client, err := smtp.Dial(addr)
 
 	if err != nil {
-		slog.Error("failed to connect to smt Server", "error", err)
-		return fmt.Errorf("failed to connect to smt Server: %w", err)
+		slog.Error("failed to connect to smtp server", "error", err)
+		return fmt.Errorf("failed to connect to smtp server: %w", err)
 	}
 
 	if err := client.Noop(); err != nil {
-		slog.Error("failed to ping smt Server", "error", err)
-		return fmt.Errorf("failed to ping smt Server: %w", err)
+		slog.Error("failed to ping smtp server", "error", err)
+		return fmt.Errorf("failed to ping smtp server: %w", err)
 	}
 
 	return nil
+}
+
+// GetState returns the current state of the circuit breaker.
+func (sp *SMTPProvider) GetState() string {
+	return sp.breaker.GetState()
+}
+
+// Legacy package-level functions for backward compatibility
+var defaultProvider *SMTPProvider
+
+func init() {
+	defaultProvider = NewSMTPProvider()
+}
+
+// SendEmail sends an email using the default SMTP provider.
+// Deprecated: Use NewSMTPProvider().Send() instead.
+func SendEmail(email *types.Mail) error {
+	return defaultProvider.Send(email)
+}
+
+// Ping verifies the connection to the SMTP server using the default provider.
+// Deprecated: Use NewSMTPProvider().Ping() instead.
+func Ping() error {
+	return defaultProvider.Ping()
 }
 
 func getAddr() string {

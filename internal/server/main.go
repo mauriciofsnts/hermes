@@ -14,15 +14,20 @@ import (
 	"github.com/mauriciofsnts/hermes/internal/providers"
 	"github.com/mauriciofsnts/hermes/internal/server/middleware"
 	"github.com/mauriciofsnts/hermes/internal/server/router"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	httpSwagger "github.com/swaggo/http-swagger"
+
+	_ "github.com/mauriciofsnts/hermes/docs" // Swagger docs
 )
 
 func StartServer(providers *providers.Providers) error {
 	r := chi.NewRouter()
- 
+
 	r.Use(chi_middleware.RequestID)
 	r.Use(chi_middleware.RealIP)
 	r.Use(chi_middleware.Recoverer)
 	r.Use(middleware.LoggerMiddleware)
+	r.Use(middleware.MetricsMiddleware)
 
 	options := cors.Options{
 		AllowedOrigins: config.Hermes.Http.AllowedOrigins,
@@ -32,6 +37,12 @@ func StartServer(providers *providers.Providers) error {
 	}
 
 	r.Use(cors.Handler(options))
+
+	// Register Prometheus metrics endpoint
+	r.Handle("/metrics", promhttp.Handler())
+
+	// Register Swagger UI endpoint
+	r.Get("/swagger/*", httpSwagger.WrapHandler)
 
 	router.RouteApp(r, providers)
 

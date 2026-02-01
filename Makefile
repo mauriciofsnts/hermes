@@ -7,20 +7,29 @@ build:
 	go build -v -o $(BINARY_NAME) ./cmd/$(BINARY_NAME)
 
 .PHONY: dist
-dist: 
+dist:
 	CGO_ENABLED=0 go build -gcflags=all=-l -v -ldflags="-w -s" -o $(BINARY_NAME) ./cmd/$(BINARY_NAME)
 
 .PHONY: run
 run: build
-	./$(BINARY_NAME) 
+	./$(BINARY_NAME)
 
 .PHONY: test
-test: 
-	$(TEST_COMMAND) -cover -parallel 5 -failfast  ./... 
+test:
+	$(TEST_COMMAND) -cover -parallel 5 -failfast  ./...
+
+.PHONY: test-integration
+test-integration:
+	docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
+	docker-compose -f docker-compose.test.yml down
 
 .PHONY: tidy
 tidy:
 	go mod tidy
+
+.PHONY: swagger
+swagger:
+	swag init -g cmd/hermes/main.go -o docs --parseDependency --parseInternal
 
 # auto restart
 .PHONY: dev
@@ -37,7 +46,7 @@ staticcheck:
 
 .PHONY: gosec
 gosec:
-	gosec -tests ./... 
+	gosec -tests ./...
 
 .PHONY: inspect
 inspect: lint gosec staticcheck

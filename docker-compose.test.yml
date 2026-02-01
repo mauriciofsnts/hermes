@@ -1,0 +1,61 @@
+version: '3.9'
+
+services:
+  # Redis for queue and distributed state
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass testpass
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "testpass", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Mailhog - SMTP mock server with web UI
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "1025:1025"  # SMTP port
+      - "8025:8025"  # Web UI
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8025"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Hermes service for integration tests
+  hermes-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      redis:
+        condition: service_healthy
+      mailhog:
+        condition: service_healthy
+    environment:
+      - SMTP_HOST=mailhog
+      - SMTP_PORT=1025
+      - SMTP_USERNAME=
+      - SMTP_PASSWORD=
+      - SMTP_FROM=test@hermes.local
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=testpass
+      - REDIS_TOPIC=hermes:test:notify
+      - HTTP_PORT=8080
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - ./config.yaml:/app/config.yaml
+      - ./templates:/app/templates
+
+networks:
+  default:
+    name: hermes-test-network

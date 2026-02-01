@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+.github
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Build artifacts
+hermes
+*.exe
+*.dll
+*.so
+*.dylib
+dist/
+build/
+
+# Test files
+*_test.go
+coverage.out
+*.test
+
+# Documentation
+*.md
+docs/
+LICENSE
+
+# Development
+.air.toml
+docker-compose.yml
+docker-compose.test.yml
+Makefile
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+*.log

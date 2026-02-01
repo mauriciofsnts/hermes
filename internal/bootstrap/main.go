@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/mauriciofsnts/hermes/internal/config"
 	"github.com/mauriciofsnts/hermes/internal/providers"
@@ -38,8 +39,8 @@ func Start(cfg *config.Config) {
 		}
 	}
 
-	go q.StartWorker(queue)
-	go onShutdown()
+	queueManager := q.NewQueueManager(queue)
+	go onShutdown(queueManager)
 
 	providers := &providers.Providers{
 		// DB:      database.SetupConnection(),
@@ -55,13 +56,18 @@ func Start(cfg *config.Config) {
 	}
 }
 
-func onShutdown() {
+func onShutdown(queueManager *q.QueueManager) {
 	stop := make(chan os.Signal, 1)
 
 	//lint:ignore SA1016 i dont know, it just works lol
-	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, syscall.SIGKILL)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	<-stop
 
-	q.StopWorker()
+	slog.Info("Shutdown signal received, draining queue...")
+
+	// Gracefully drain queue with 30 second timeout
+	queueManager.DrainAndStop(30 * time.Second)
+
+	slog.Info("Graceful shutdown complete")
 	os.Exit(0)
 }

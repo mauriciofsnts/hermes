@@ -11,6 +11,20 @@ import (
 	"github.com/mauriciofsnts/hermes/internal/types"
 )
 
+// Notify godoc
+//
+//	@Summary		Send notification
+//	@Description	Send a notification through multiple channels (email, Discord, etc.)
+//	@Tags			Notification
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-API-Key	header		string						true	"API Key"
+//	@Param			request		body		types.NotificationRequest	true	"Notification request"
+//	@Success		201			{object}	map[string]interface{}		"Notification registered successfully"
+//	@Failure		400			{object}	map[string]interface{}		"Invalid request"
+//	@Failure		500			{object}	map[string]interface{}		"Internal server error"
+//	@Security		ApiKeyAuth
+//	@Router			/send [post]
 func (e *EmailController) Notify(r *http.Request) api.Response {
 
 	queue := e.Queue

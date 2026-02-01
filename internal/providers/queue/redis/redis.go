@@ -2,9 +2,12 @@ package redis
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
+	"time"
 
 	"github.com/mauriciofsnts/hermes/internal/config"
+	"github.com/mauriciofsnts/hermes/internal/providers/database"
 	"github.com/mauriciofsnts/hermes/internal/providers/queue/worker"
 	"github.com/mauriciofsnts/hermes/internal/providers/smtp"
 	"github.com/mauriciofsnts/hermes/internal/types"
@@ -13,14 +16,18 @@ import (
 
 func NewRedisClient(addr string, password string) *redis.Client {
 	return redis.NewClient(&redis.Options{
-		Addr:     addr,
-		Password: password,
+		Addr:         addr,
+		Password:     password,
+		DialTimeout:  5 * time.Second,
+		ReadTimeout:  3 * time.Second,
+		WriteTimeout: 3 * time.Second,
 	})
 }
 
 type RedisQueue[T any] struct {
 	client   *redis.Client
 	consumer *Consumer[types.Mail]
+	dlq      *database.DLQService
 }
 
 func (r *RedisQueue[T]) Read(ctx context.Context) {
@@ -47,6 +54,19 @@ func (r *RedisQueue[T]) Read(ctx context.Context) {
 
 			if err != nil {
 				slog.Error("Failed to send email", "error", err)
+
+				// Store in DLQ if available
+				if r.dlq != nil {
+					emailJSON, jsonErr := json.Marshal(data.Data)
+					if jsonErr == nil {
+						dlqErr := r.dlq.Store(string(emailJSON), err.Error(), "unknown")
+						if dlqErr != nil {
+							slog.Error("Failed to store email in DLQ", "error", dlqErr)
+						} else {
+							slog.Info("Email stored in DLQ for retry")
+						}
+					}
+				}
 				continue
 			}
 			continue
@@ -92,8 +112,19 @@ func NewRedisProvider() (worker.Queue[types.Mail], error) {
 		return nil, err
 	}
 
+	// Initialize DLQ service (optional)
+	var dlqService *database.DLQService
+	dlqService, err = database.NewDLQService("hermes_dlq.db")
+	if err != nil {
+		slog.Warn("Failed to initialize DLQ service, continuing without DLQ", "error", err)
+		dlqService = nil
+	} else {
+		slog.Info("DLQ service initialized successfully")
+	}
+
 	return &RedisQueue[types.Mail]{
 		client:   client,
 		consumer: NewConsumer[types.Mail](client, config.Hermes.Redis.Topic),
+		dlq:      dlqService,
 	}, nil
 }

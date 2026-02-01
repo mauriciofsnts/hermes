@@ -1,0 +1,175 @@
+definitions:
+  github_com_mauriciofsnts_hermes_internal_types.NotificationRequest:
+    properties:
+      recipients:
+        items:
+          $ref: '#/definitions/github_com_mauriciofsnts_hermes_internal_types.Recipient'
+        type: array
+      subject:
+        type: string
+      templateId:
+        type: string
+    type: object
+  github_com_mauriciofsnts_hermes_internal_types.Recipient:
+    properties:
+      data:
+        additionalProperties: {}
+        type: object
+      type:
+        $ref: '#/definitions/github_com_mauriciofsnts_hermes_internal_types.RecipientType'
+    type: object
+  github_com_mauriciofsnts_hermes_internal_types.RecipientType:
+    enum:
+    - mail
+    - discord
+    type: string
+    x-enum-varnames:
+    - MAIL
+    - DISCORD
+info:
+  contact: {}
+paths:
+  /dlq/failed:
+    get:
+      description: Returns up to 100 failed items from the Dead Letter Queue
+      parameters:
+      - description: API Key
+        in: header
+        name: X-API-Key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Failed DLQ items
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get failed DLQ items
+      tags:
+      - DLQ
+  /dlq/pending:
+    get:
+      description: Returns up to 100 pending items from the Dead Letter Queue
+      parameters:
+      - description: API Key
+        in: header
+        name: X-API-Key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pending DLQ items
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get pending DLQ items
+      tags:
+      - DLQ
+  /dlq/stats:
+    get:
+      description: Returns statistics about the Dead Letter Queue (total, pending,
+        failed counts)
+      parameters:
+      - description: API Key
+        in: header
+        name: X-API-Key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: DLQ statistics
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get DLQ statistics
+      tags:
+      - DLQ
+  /health:
+    get:
+      description: Returns the health status of the service including queue and SMTP
+        connectivity
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service is healthy
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Service is unhealthy
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Check service health
+      tags:
+      - Health
+  /send:
+    post:
+      consumes:
+      - application/json
+      description: Send a notification through multiple channels (email, Discord,
+        etc.)
+      parameters:
+      - description: API Key
+        in: header
+        name: X-API-Key
+        required: true
+        type: string
+      - description: Notification request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_mauriciofsnts_hermes_internal_types.NotificationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Notification registered successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Send notification
+      tags:
+      - Notification
+swagger: "2.0"

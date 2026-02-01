@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/YAML-CB171E.svg?style=flat-square&logo=YAML&logoColor=white" alt="YAML" />
   <img src="https://img.shields.io/badge/Docker-2496ED.svg?style=flat-square&logo=Docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/Go-00ADD8.svg?style=flat-square&logo=Go&logoColor=white" alt="Go" />
-  
+
   </p>
   <img src="https://img.shields.io/github/license/mauriciofsnts/hermes?style=flat-square&color=5D6D7E" alt="GitHub license" />
   <img src="https://img.shields.io/github/last-commit/mauriciofsnts/hermes?style=flat-square&color=5D6D7E" alt="git-last-commit" />
@@ -39,6 +39,56 @@ This service allows you to seamlessly integrate email functionalities into your 
 ---
 
 ## 📦 Features
+
+### 📊 Prometheus Metrics (NEW!)
+
+Hermes now includes comprehensive Prometheus metrics for observability:
+
+- **Email tracking**: Total sent, failed, and success rates
+- **Queue depth**: Monitor notification queue size
+- **Circuit breaker**: SMTP circuit breaker state and failures
+- **Latency**: HTTP request and SMTP operation durations
+- **Rate limiting**: Track API key rate limit events
+
+Access metrics at `GET /metrics` (Prometheus format).
+
+See [USAGE_GUIDE.md](USAGE_GUIDE.md) for Grafana dashboard examples.
+
+### ⚡ Improved Architecture (NEW!)
+
+- **Thread-safe queue management**: No more global mutable state
+- **Dependency injection**: Testable SMTP provider with interface
+- **Redis timeouts**: Configured dial, read, and write timeouts
+- **Circuit breaker refactored**: Per-instance breaker for better testability
+
+See [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) for technical details.
+
+### 🔄 Dead Letter Queue (DLQ) (NEW!)
+
+Automatic handling of failed emails with retry logic:
+
+- **Automatic storage**: Failed emails saved to SQLite database
+- **Smart retry**: Attempts up to 5 times with configurable intervals
+- **Background worker**: Processes queue every 5 minutes
+- **Status tracking**: pending → processing → succeeded/failed
+- **Management API**: Monitor and manage failed emails
+
+Admin endpoints:
+- `GET /api/v1/admin/dlq/stats` - View statistics
+- `GET /api/v1/admin/dlq/pending` - List pending retries
+- `GET /api/v1/admin/dlq/failed` - View permanently failed emails
+
+See [SPRINT_2_3_SUMMARY.md](SPRINT_2_3_SUMMARY.md) for implementation details.
+
+### 🌐 Distributed Features (NEW!)
+
+Production-ready for multi-instance deployments:
+
+- **Distributed Circuit Breaker**: Redis-backed state shared across all instances
+- **Distributed Rate Limiting**: Cluster-wide rate limits with Redis
+- **Synchronized Resilience**: Circuit breaker state persists across restarts
+
+Perfect for Kubernetes, Docker Swarm, or any clustered environment!
 
 ### Rate Limit
 

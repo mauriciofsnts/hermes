@@ -10,6 +10,15 @@ import (
 	"github.com/mauriciofsnts/hermes/internal/server/api"
 )
 
+// GetHealth godoc
+//
+//	@Summary		Check service health
+//	@Description	Returns the health status of the service including queue and SMTP connectivity
+//	@Tags			Health
+//	@Produce		json
+//	@Success		200	{object}	map[string]interface{}	"Service is healthy"
+//	@Failure		500	{object}	map[string]interface{}	"Service is unhealthy"
+//	@Router			/health [get]
 func (c *HealthController) GetHealth(r *http.Request) api.Response {
 
 	statusChecker := healthCheck.NewChecker(
