@@ -40,7 +40,7 @@ This service allows you to seamlessly integrate email functionalities into your 
 
 ## 📦 Features
 
-### 📊 Prometheus Metrics (NEW!)
+### 📊 Prometheus Metrics
 
 Hermes now includes comprehensive Prometheus metrics for observability:
 
@@ -52,18 +52,15 @@ Hermes now includes comprehensive Prometheus metrics for observability:
 
 Access metrics at `GET /metrics` (Prometheus format).
 
-See [USAGE_GUIDE.md](USAGE_GUIDE.md) for Grafana dashboard examples.
-
-### ⚡ Improved Architecture (NEW!)
+### ⚡ Improved Architecture
 
 - **Thread-safe queue management**: No more global mutable state
 - **Dependency injection**: Testable SMTP provider with interface
 - **Redis timeouts**: Configured dial, read, and write timeouts
 - **Circuit breaker refactored**: Per-instance breaker for better testability
 
-See [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) for technical details.
 
-### 🔄 Dead Letter Queue (DLQ) (NEW!)
+### 🔄 Dead Letter Queue (DLQ)
 
 Automatic handling of failed emails with retry logic:
 
@@ -78,9 +75,7 @@ Admin endpoints:
 - `GET /api/v1/admin/dlq/pending` - List pending retries
 - `GET /api/v1/admin/dlq/failed` - View permanently failed emails
 
-See [SPRINT_2_3_SUMMARY.md](SPRINT_2_3_SUMMARY.md) for implementation details.
-
-### 🌐 Distributed Features (NEW!)
+### 🌐 Distributed Features
 
 Production-ready for multi-instance deployments:
 
