@@ -1,6 +1,6 @@
 
 BINARY_NAME = hermes
-TEST_COMMAND = gotest
+TEST_COMMAND = go test
 
 .PHONY: build
 build:
