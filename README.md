@@ -1,14 +1,13 @@
 <div align="center">
-  <h1 align="center">HERMES</h1>
+  <h1 align="center">⚡ HERMES</h1>
 
-  <h3>This service makes it easy to add email features to your applications, without the need to handle the technical details of SMTP (Simple Mail Transfer Protocol).</h3>
+  <h3>Production-ready email notification service with queue-based processing, circuit breakers, and automatic retry logic</h3>
 
   <p align="center">
-  <img src="https://img.shields.io/badge/HTML5-E34F26.svg?style=flat-square&logo=HTML5&logoColor=white" alt="HTML5" />
-  <img src="https://img.shields.io/badge/YAML-CB171E.svg?style=flat-square&logo=YAML&logoColor=white" alt="YAML" />
-  <img src="https://img.shields.io/badge/Docker-2496ED.svg?style=flat-square&logo=Docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/Go-00ADD8.svg?style=flat-square&logo=Go&logoColor=white" alt="Go" />
-
+  <img src="https://img.shields.io/badge/Redis-DC382D.svg?style=flat-square&logo=Redis&logoColor=white" alt="Redis" />
+  <img src="https://img.shields.io/badge/Docker-2496ED.svg?style=flat-square&logo=Docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/Prometheus-E6522C.svg?style=flat-square&logo=Prometheus&logoColor=white" alt="Prometheus" />
   </p>
   <img src="https://img.shields.io/github/license/mauriciofsnts/hermes?style=flat-square&color=5D6D7E" alt="GitHub license" />
   <img src="https://img.shields.io/github/last-commit/mauriciofsnts/hermes?style=flat-square&color=5D6D7E" alt="git-last-commit" />
@@ -20,247 +19,582 @@
 
 ## 📖 Table of Contents
 
-- [📖 Table of Contents](#-table-of-contents)
-- [📍 Overview](#-overview)
-- [📦 Features](#-features)
-- [🚀 Getting Started](#-getting-started)
-  - [📝 Environment Variables](#-environment-variables)
-  - [🔧 Installation](#-installation)
-  - [🤖 Running hermes](#-running-hermes)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
+- [Why Hermes?](#-why-hermes)
+- [Quick Start](#-quick-start)
+- [Architecture](#-architecture)
+- [Features](#-features)
+- [Configuration](#-configuration)
+- [API Reference](#-api-reference)
+- [Development](#-development)
+- [Deployment](#-deployment)
+- [Observability](#-observability)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ---
 
-## 📍 Overview
+## 🎯 Why Hermes?
 
-This service allows you to seamlessly integrate email functionalities into your applications, without the hassle of dealing directly with the complexities of the Simple Mail Transfer Protocol (SMTP). Our remarkable API enables you to send emails effortlessly using your preferred SMTP server.
+Hermes transforms email sending from a fragile, blocking operation into a resilient, observable microservice. Unlike simple SMTP wrappers, Hermes provides:
+
+- **🔄 Guaranteed Delivery**: Dead Letter Queue with automatic retry (up to 5 attempts)
+- **🛡️ Production Resilience**: Circuit breakers prevent cascading SMTP failures
+- **📊 Full Observability**: Prometheus metrics for email success rates, queue depth, and latency
+- **⚖️ Horizontal Scaling**: Redis-backed distributed queue and rate limiting
+- **🎨 Template Management**: Dynamic HTML templates with caching
+- **🔐 Multi-App Support**: Isolated API keys and rate limits per application
+
+### When to Use Hermes
+
+✅ **Perfect for:**
+- Microservices needing reliable transactional emails
+- Multi-tenant applications requiring isolated email sending
+- High-volume notification systems (marketing, alerts, reports)
+- Teams wanting email observability without vendor lock-in
+
+❌ **Not ideal for:**
+- Simple scripts needing one-off emails (use `net/smtp` directly)
+- Real-time chat applications (consider WebSockets/SSE instead)
 
 ---
+
+## � Quick Start
+
+### Prerequisites
+- Go 1.25+
+- (Optional) Redis for distributed features
+- SMTP server credentials (Gmail, SendGrid, Mailgun, etc.)
+
+### 1. Install and Configure
+
+```bash
+# Clone the repository
+git clone https://github.com/mauriciofsnts/hermes
+cd hermes
+
+# Install dependencies
+go mod download
+
+# Create config from example
+make start  # Auto-creates config.yaml
+```
+
+### 2. Configure Your SMTP & App
+
+Edit `config.yaml`:
+
+```yaml
+smtp:
+  host: "smtp.gmail.com"
+  port: 587
+  username: "your-email@gmail.com"
+  password: "your-app-password"
+  sender: "noreply@yourapp.com"
+
+apps:
+  my-app:
+    enabled: true
+    apiKey: "7a28c3e0-83e4-426f-89a4-d932cdcadac4"  # Change this!
+    limitPerIPPerHour: 1000
+    enabledFeatures: [email]
+```
+
+### 3. Create a Template
+
+```bash
+# Create templates/welcome.html
+cat > templates/welcome.html << 'EOF'
+<!DOCTYPE html>
+<html>
+<body>
+  <h1>Welcome, {{.Name}}!</h1>
+  <p>{{.Message}}</p>
+</body>
+</html>
+EOF
+```
+
+### 4. Send Your First Email
+
+```bash
+# Start the server
+make dev
+
+# Send email via API
+curl -X POST http://localhost:3000/api/v1/app/notify/notification \
+  -H "x-api-key: 7a28c3e0-83e4-426f-89a4-d932cdcadac4" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "templateId": "welcome",
+    "subject": "Welcome to Our Service!",
+    "recipients": [{
+      "type": "mail",
+      "data": {
+        "to": "user@example.com",
+        "Name": "Alice",
+        "Message": "Thanks for joining us!"
+      }
+    }]
+  }'
+```
+
+✅ **Response:** `{"message": "Email sent successfully"}`
+
+---
+
+## 🏗️ Architecture
+
+Hermes follows a clean architecture with dependency injection and interface-based providers:
+
+```
+┌─────────────┐
+│   Client    │
+└──────┬──────┘
+       │ POST /api/v1/app/notify/notification
+       ▼
+┌─────────────────────────────────────────┐
+│         HTTP Server (Chi)               │
+│  ┌──────────────────────────────┐       │
+│  │ Middleware Chain:            │       │
+│  │  → Auth (API Key)            │       │
+│  │  → Rate Limiter              │       │
+│  │  → Metrics (Prometheus)      │       │
+│  └──────────────────────────────┘       │
+└──────┬──────────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────────────────┐
+│      Template Service                   │
+│  • Parse HTML with dynamic data         │
+│  • In-memory cache (sync.RWMutex)       │
+└──────┬──────────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────────────────┐
+│      Queue (Redis/Memory)               │
+│  • Async processing                     │
+│  • Worker reads from queue              │
+└──────┬──────────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────────────────┐
+│      SMTP Provider                      │
+│  • Circuit breaker (3 failures → open) │
+│  • Automatic retry logic                │
+└──────┬──────────────────────────────────┘
+       │
+       ├─ Success ✓
+       │
+       └─ Failure ✗
+          │
+          ▼
+    ┌─────────────────────────────┐
+    │  Dead Letter Queue (SQLite) │
+    │  • Max 5 retry attempts     │
+    │  • Background worker        │
+    │  • Admin API for monitoring │
+    └─────────────────────────────┘
+```
+
+### Key Design Patterns
+
+- **Provider Interface Pattern**: All external services (SMTP, Queue, Templates) implement interfaces for easy testing/mocking
+- **Circuit Breaker**: Prevents cascading SMTP failures; opens after 3 failures, half-opens after 30s
+- **Template Caching**: Parsed templates cached in-memory with thread-safe access
+- **Queue Abstraction**: Swap between Redis (distributed) and Memory (development) seamlessly
+- **WrappedHandler**: Custom router pattern that returns `Response` objects instead of writing directly to `http.ResponseWriter`
+
+---
+
+## �📦 Features
 
 ## 📦 Features
 
-### 📊 Prometheus Metrics
-
-Hermes now includes comprehensive Prometheus metrics for observability:
-
-- **Email tracking**: Total sent, failed, and success rates
-- **Queue depth**: Monitor notification queue size
-- **Circuit breaker**: SMTP circuit breaker state and failures
-- **Latency**: HTTP request and SMTP operation durations
-- **Rate limiting**: Track API key rate limit events
-
-Access metrics at `GET /metrics` (Prometheus format).
-
-### ⚡ Improved Architecture
-
-- **Thread-safe queue management**: No more global mutable state
-- **Dependency injection**: Testable SMTP provider with interface
-- **Redis timeouts**: Configured dial, read, and write timeouts
-- **Circuit breaker refactored**: Per-instance breaker for better testability
-
-
 ### 🔄 Dead Letter Queue (DLQ)
 
-Automatic handling of failed emails with retry logic:
+Automatic failure handling with persistent retry logic:
 
-- **Automatic storage**: Failed emails saved to SQLite database
-- **Smart retry**: Attempts up to 5 times with configurable intervals
-- **Background worker**: Processes queue every 5 minutes
-- **Status tracking**: pending → processing → succeeded/failed
-- **Management API**: Monitor and manage failed emails
+```
+Email Send Failed → DLQ (SQLite)
+                     ↓
+            Background Worker (5min interval)
+                     ↓
+        Retry Attempt (max 5 times)
+                     ↓
+         Success ✓ or Permanent Failure ✗
+```
 
-Admin endpoints:
-- `GET /api/v1/admin/dlq/stats` - View statistics
+**Admin API:**
+- `GET /api/v1/admin/dlq/stats` - View retry statistics
 - `GET /api/v1/admin/dlq/pending` - List pending retries
 - `GET /api/v1/admin/dlq/failed` - View permanently failed emails
 
-### 🌐 Distributed Features
+### 🛡️ Circuit Breaker
 
-Production-ready for multi-instance deployments:
+Protects against cascading SMTP failures:
 
-- **Distributed Circuit Breaker**: Redis-backed state shared across all instances
-- **Distributed Rate Limiting**: Cluster-wide rate limits with Redis
-- **Synchronized Resilience**: Circuit breaker state persists across restarts
+- **Closed** (normal): Requests pass through
+- **Open** (failing): Fast-fail for 30s after 3 failures
+- **Half-Open** (testing): Allow 1 request to test recovery
 
-Perfect for Kubernetes, Docker Swarm, or any clustered environment!
+```go
+// Distributed Redis version shares state across instances
+type CircuitBreaker interface {
+    CanExecute() bool
+    RecordSuccess()
+    RecordFailure()
+    GetState() string  // "closed", "open", "half-open"
+}
+```
 
-### Rate Limit
+### 📊 Prometheus Metrics
 
-This service has a optinal rate limit to prevent abuse. You can make a maximum of 1 request every 30 seconds. If you exceed this limit, you will receive a response with a status of 429 (Too Many Requests) and the following `Retry-After` header indicating the time in seconds to wait before making the next request.
+Production-grade observability out of the box:
 
-### Templates
+```prometheus
+# Email metrics
+hermes_emails_sent_total{status="success|failed"}
+hermes_email_send_duration_seconds
 
-Simplifies the setup of customizable email templates through Hermes APIs. With the Go templating language, users can easily include dynamic variables in their templates, ensuring adaptability for specific email content needs.
+# Queue metrics
+hermes_queue_depth
+hermes_queue_processing_duration_seconds
 
-### Send emails via API
+# Circuit breaker
+hermes_circuit_breaker_state{state="closed|open|half-open"}
 
-Send emails through a simple API request.
+# Rate limiting
+hermes_rate_limit_events_total{action="allowed|blocked"}
+```
 
-`POST /api/v1/app/notify/notification`
+Access at: `http://localhost:3000/metrics`
 
+### ⚖️ Distributed Features
+
+Run multiple Hermes instances with shared state:
+
+| Feature | Single Instance | Multi-Instance (Redis) |
+|---------|----------------|------------------------|
+| Queue Processing | ✅ Memory | ✅ Redis (shared jobs) |
+| Circuit Breaker | ✅ Local state | ✅ Redis (cluster-wide) |
+| Rate Limiting | ✅ In-memory | ✅ Redis (global limits) |
+| DLQ | ✅ SQLite | ✅ SQLite (per-instance) |
+
+**Enable Redis:**
+```yaml
+redis:
+  address: "localhost:6379"
+  password: "your-password"
+  topic: hermes
+```
+
+### 🎨 Dynamic Templates
+
+Go template engine with caching:
+
+```html
+<!-- templates/invoice.html -->
+<!DOCTYPE html>
+<html>
+<body>
+  <h1>Invoice #{{.InvoiceID}}</h1>
+  <p>Dear {{.CustomerName}},</p>
+  <p>Amount due: ${{.Amount}}</p>
+  {{if .IsPastDue}}
+    <p style="color: red;">⚠️ Payment overdue!</p>
+  {{end}}
+</body>
+</html>
+```
+
+**Template API:**
+- `POST /api/v1/app/templates` - Upload template
+- `GET /api/v1/app/templates/{id}` - Retrieve template
+- `DELETE /api/v1/app/templates/{id}` - Delete template
+
+### 🔐 Multi-App Support
+
+Isolate email sending per application:
+
+```yaml
+apps:
+  app-production:
+    enabled: true
+    apiKey: "prod-key-xxx"
+    limitPerIPPerHour: 5000
+    allowedOrigins: ["https://app.example.com"]
+
+  app-staging:
+    enabled: true
+    apiKey: "staging-key-yyy"
+    limitPerIPPerHour: 100
+    allowedOrigins: ["https://staging.example.com"]
+```
+
+Each app gets:
+- ✅ Unique API key for authentication
+- ✅ Independent rate limits
+- ✅ Custom CORS origins
+- ✅ Feature flags (email, discord)
+
+---
+
+
+## 📡 API Reference
+
+### Send Notification
+
+**Endpoint:** `POST /api/v1/app/notify/notification`
+
+**Headers:**
+```
+x-api-key: your-api-key
+Content-Type: application/json
+```
+
+**Request Body:**
 ```json
 {
-  "templateId": "example",
-  "subject": "A very interesting email",
+  "templateId": "welcome",
+  "subject": "Welcome to Our Service",
   "recipients": [
     {
       "type": "mail",
       "data": {
-        "to": "hermes@tdl.com",
-        "Title": "Hello, hermes is awesome!",
-        "Content": "Hermes is a great service!"
+        "to": "user@example.com",
+        "Name": "John Doe",
+        "CustomField": "Any value you need in template"
       }
     }
   ]
 }
 ```
 
-#### Response example
-
+**Success Response (200):**
 ```json
 {
   "message": "Email sent successfully"
 }
 ```
 
+**Error Response (4xx/5xx):**
 ```json
 {
-  "error": "Failed to send email: <error message>"
+  "error": "Failed to send email: template not found"
 }
 ```
 
+### Health Check
+
+**Endpoint:** `GET /api/v1/health`
+
+**Response:**
+```json
+{
+  "status": "healthy",
+  "queue": "redis connected"
+}
+```
+
+### Template Management
+
+**Upload Template:**
+```bash
+POST /api/v1/app/templates
+x-api-key: your-api-key
+Content-Type: application/json
+
+{
+  "name": "welcome",
+  "content": "<html>...</html>"
+}
+```
+
+**Get Template:**
+```bash
+GET /api/v1/app/templates/welcome
+x-api-key: your-api-key
+```
+
+### DLQ Management
+
+**View Statistics:**
+```bash
+GET /api/v1/admin/dlq/stats
+```
+
+**Response:**
+```json
+{
+  "pending": 5,
+  "processing": 2,
+  "failed": 1,
+  "succeeded": 234
+}
+```
+
+### Swagger Documentation
+
+Interactive API docs available at: `http://localhost:3000/swagger/index.html`
+
 ---
 
-### Queue system
+## 🛠️ Development
 
-The service has a queue system to send emails asynchronously. This ensures that the API response is fast and that the email is sent in the background.
+### Local Development
 
-#### Redis
-
-To use the Redis queue system, you need to configure the Redis server. For that, you should set the following environment variables:
-
-```yaml
-redis:
-  enabled: true
-  topic: string
-  port: 6379
-  host: localhost
-  password: string
-```
-
-#### Memory cache
-
-If you prefer not to utilize Redis or Memory cache is an alternative option.
-
----
-
-## 📝 Environment Variables
-
-You can check all the available configurations in the [config_example.yml](https://github.com/mauriciofsnts/hermes/blob/master/config_example.yml) file.
-
----
-
-## 🔧 Installation
-
-1. Clone the hermes repository:
-
-```sh
-git clone https://github.com/mauriciofsnts/hermes
-```
-
-2. Change to the project directory:
-
-```sh
-cd hermes
-```
-
-3. Install the dependencies:
-
-```sh
-go mod download
-```
-
-### 🤖 Running hermes
-
-Development:
-
-```sh
+```bash
+# Hot reload with Air
 make dev
+
+# Run tests
+make test
+
+# Integration tests (requires Docker)
+make test-integration
+
+# Code quality checks
+make inspect  # Runs revive + gosec + staticcheck
+
+# Generate Swagger docs
+make swagger
 ```
 
-Prodution:
+### Project Structure
 
-```sh
-make build
+```
+hermes/
+├── cmd/hermes/          # Application entry point
+├── internal/
+│   ├── bootstrap/       # Initialization logic
+│   ├── config/          # Configuration loading & validation
+│   ├── metrics/         # Prometheus metrics
+│   ├── providers/       # External service interfaces
+│   │   ├── database/    # DLQ persistence (SQLite)
+│   │   ├── discord/     # Discord webhook integration
+│   │   ├── queue/       # Queue abstraction (Redis/Memory)
+│   │   ├── smtp/        # Email sending with circuit breaker
+│   │   └── template/    # Template parsing & caching
+│   ├── server/          # HTTP server & middleware
+│   │   ├── api/         # Controllers & routing
+│   │   ├── middleware/  # Auth, rate limiting, logging
+│   │   └── router/      # Route definitions
+│   └── types/           # Shared data structures
+├── templates/           # Email HTML templates
+├── config.yaml          # Runtime configuration
+└── Makefile             # Build & dev commands
 ```
 
-<details closed>
-<summary>Docker</summary>
+### Adding a New Endpoint
 
-To run this service using Docker Compose, follow the instructions below:
+1. **Create controller** in `internal/server/api/your-feature/`
+2. **Implement handler** returning `api.Response`
+3. **Register route** in `internal/server/router/main.go`
+4. **Add Swagger comments** and run `make swagger`
 
-1. Ensure that Docker and Docker Compose are installed in your environment.
+Example:
+```go
+// internal/server/api/myfeature/controller.go
+type MyController struct {
+    provider providers.SomeProvider
+}
 
-2. In the terminal, navigate to the root directory of your project containing the `docker-compose.yml` and `Dockerfile` files.
+func (c *MyController) Route(r api.Router) {
+    r.Post("/my-endpoint", c.HandleRequest)
+}
 
-3. Execute the following command to start the Email API service:
+func (c *MyController) HandleRequest(r *http.Request) api.Response {
+    // Your logic here
+    return api.SuccessResponse("Done!")
+}
+```
+
+
+## 📚 Advanced Examples
+
+### Multi-Recipient Email
 
 ```bash
-docker-compose up
+curl -X POST http://localhost:3000/api/v1/app/notify/notification \
+  -H "x-api-key: your-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "templateId": "newsletter",
+    "subject": "Monthly Update",
+    "recipients": [
+      {
+        "type": "mail",
+        "data": {
+          "to": "alice@example.com",
+          "Name": "Alice",
+          "Content": "Custom content for Alice"
+        }
+      },
+      {
+        "type": "mail",
+        "data": {
+          "to": "bob@example.com",
+          "Name": "Bob",
+          "Content": "Custom content for Bob"
+        }
+      }
+    ]
+  }'
 ```
 
-4. Wait until Docker Compose builds the images and starts the containers. You will see the service logs in the terminal.
+### Conditional Template Logic
 
-5. The API will be available at `http://127.0.0.1:8293/api/app/notify`. You can send POST requests to this endpoint to send emails.
+```html
+<!-- templates/order-confirmation.html -->
+<!DOCTYPE html>
+<html>
+<body>
+  <h1>Order #{{.OrderID}} Confirmed</h1>
 
-6. To stop the service, press `Ctrl+C` in the terminal and execute the following command to stop and remove the containers:
+  {{if .IsExpressShipping}}
+    <p style="color: green;">⚡ Express shipping - arrives tomorrow!</p>
+  {{else}}
+    <p>Standard shipping - arrives in 3-5 days</p>
+  {{end}}
 
-```bash
-docker-compose down
+  <h2>Items ({{len .Items}}):</h2>
+  <ul>
+    {{range .Items}}
+      <li>{{.Name}} - ${{.Price}}</li>
+    {{end}}
+  </ul>
+
+  <p><strong>Total: ${{.Total}}</strong></p>
+</body>
+</html>
 ```
 
-## </details>
+---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Here are several ways you can contribute:
+Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-- **[Submit Pull Requests](https://github.com/mauriciofsnts/hermes/blob/main/CONTRIBUTING.md)**: Review open PRs, and submit your own PRs.
-- **[Join the Discussions](https://github.com/mauriciofsnts/hermes/discussions)**: Share your insights, provide feedback, or ask questions.
-- **[Report Issues](https://github.com/mauriciofsnts/hermes/issues)**: Submit bugs found or log feature requests for MAURICIOFSNTS.
+### Development Workflow
 
-#### _Contributing Guidelines_
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/my-feature`
+3. Make changes and add tests
+4. Run quality checks: `make inspect`
+5. Commit: `git commit -m 'Add feature X'`
+6. Push: `git push origin feature/my-feature`
+7. Open Pull Request
 
-<details closed>
-<summary>Click to expand</summary>
+### Areas for Contribution
 
-1. **Fork the Repository**: Start by forking the project repository to your GitHub account.
-2. **Clone Locally**: Clone the forked repository to your local machine using a Git client.
-   ```sh
-   git clone <your-forked-repo-url>
-   ```
-3. **Create a New Branch**: Always work on a new branch, giving it a descriptive name.
-   ```sh
-   git checkout -b new-feature-x
-   ```
-4. **Make Your Changes**: Develop and test your changes locally.
-5. **Commit Your Changes**: Commit with a clear and concise message describing your updates.
-   ```sh
-   git commit -m 'Implemented new feature x.'
-   ```
-6. **Push to GitHub**: Push the changes to your forked repository.
-   ```sh
-   git push origin new-feature-x
-   ```
-7. **Submit a Pull Request**: Create a PR against the original project repository. Clearly describe the changes and their motivations.
-
-Once your PR is reviewed and approved, it will be merged into the main branch.
-
-</details>
+- 🔌 **New Providers**: SMS, Slack, Teams integrations
+- 📊 **Enhanced Metrics**: Custom business metrics
+- 🧪 **Test Coverage**: Integration tests, benchmarks
+- 📚 **Documentation**: Tutorials, architecture diagrams
+- 🐛 **Bug Fixes**: Check [Issues](https://github.com/mauriciofsnts/hermes/issues)
 
 ---
 
 ## 📄 License
 
-This project is protected under the MIT License. For more details, refer to the [LICENSE](https://github.com/mauriciofsnts/hermes/blob/master/LICENSE) file.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
