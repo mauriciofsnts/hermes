@@ -26,79 +26,72 @@ func NewRedisClient(addr string, password string) *redis.Client {
 
 type RedisQueue[T any] struct {
 	client   *redis.Client
-	consumer *Consumer[types.Mail]
+	producer *Producer[types.Mail]
 	dlq      *database.DLQService
 }
 
 func (r *RedisQueue[T]) Read(ctx context.Context) {
-	slog.Debug("Starting Redis consumer...")
+	slog.Debug("starting Redis consumer...")
 
-	r.consumer = NewConsumer[types.Mail](r.client, "hermes")
-
+	consumer := NewConsumer[types.Mail](r.client, config.Hermes.Redis.Topic)
 	readCh := make(chan ReadData[types.Mail])
 
-	go r.consumer.Read(readCh)
+	go consumer.Read(ctx, readCh)
 
 	for {
 		select {
 		case <-ctx.Done():
-			_ = r.consumer.Close()
+			if err := consumer.Close(); err != nil {
+				slog.Error("failed to close redis consumer", "error", err)
+			}
 			return
 		case data := <-readCh:
 			if data.Err != nil {
-				slog.Error("Failed to read email", "error", data.Err)
+				slog.Error("failed to read email", "error", data.Err)
 				continue
 			}
 
-			err := smtp.SendEmail(data.Data)
-
-			if err != nil {
-				slog.Error("Failed to send email", "error", err)
-
-				// Store in DLQ if available
-				if r.dlq != nil {
-					emailJSON, jsonErr := json.Marshal(data.Data)
-					if jsonErr == nil {
-						dlqErr := r.dlq.Store(string(emailJSON), err.Error(), "unknown")
-						if dlqErr != nil {
-							slog.Error("Failed to store email in DLQ", "error", dlqErr)
-						} else {
-							slog.Info("Email stored in DLQ for retry")
-						}
-					}
-				}
+			if err := smtp.SendEmail(data.Data); err != nil {
+				slog.Error("failed to send email", "error", err)
+				r.storeInDLQ(data.Data, err)
 				continue
 			}
-			continue
 		}
 	}
+}
 
+func (r *RedisQueue[T]) storeInDLQ(email *types.Mail, sendErr error) {
+	if r.dlq == nil {
+		return
+	}
+
+	emailJSON, jsonErr := json.Marshal(email)
+	if jsonErr != nil {
+		slog.Error("failed to marshal email for DLQ", "error", jsonErr)
+		return
+	}
+
+	if dlqErr := r.dlq.Store(string(emailJSON), sendErr.Error(), "unknown"); dlqErr != nil {
+		slog.Error("failed to store email in DLQ", "error", dlqErr)
+	} else {
+		slog.Info("email stored in DLQ for retry")
+	}
 }
 
 func (r *RedisQueue[T]) Write(email types.Mail) error {
-	producer := NewProducer[types.Mail](
-		*r.client,
-		config.Hermes.Redis.Topic,
-	)
-
-	err := producer.Produce(email)
-
-	if err != nil {
-		slog.Error("Failed to produce email", "error", err)
+	if err := r.producer.Produce(email); err != nil {
+		slog.Error("failed to produce email", "error", err)
 		return err
 	}
-
 	return nil
 }
 
 func (r *RedisQueue[T]) Ping() (string, error) {
 	_, err := r.client.Ping(context.Background()).Result()
-
 	if err != nil {
-		slog.Error("Failed to ping redis", "error", err)
+		slog.Error("failed to ping redis", "error", err)
 		return "", err
 	}
-
 	return "Redis is up", nil
 }
 
@@ -106,17 +99,15 @@ func NewRedisProvider() (worker.Queue[types.Mail], error) {
 	client := NewRedisClient(config.Hermes.Redis.Address, config.Hermes.Redis.Password)
 
 	_, err := client.Ping(context.Background()).Result()
-
 	if err != nil {
-		slog.Error("Failed to connect to redis", "error", err)
+		slog.Error("failed to connect to redis", "error", err)
 		return nil, err
 	}
 
-	// Initialize DLQ service (optional)
 	var dlqService *database.DLQService
 	dlqService, err = database.NewDLQService("hermes_dlq.db")
 	if err != nil {
-		slog.Warn("Failed to initialize DLQ service, continuing without DLQ", "error", err)
+		slog.Warn("failed to initialize DLQ service, continuing without DLQ", "error", err)
 		dlqService = nil
 	} else {
 		slog.Info("DLQ service initialized successfully")
@@ -124,7 +115,7 @@ func NewRedisProvider() (worker.Queue[types.Mail], error) {
 
 	return &RedisQueue[types.Mail]{
 		client:   client,
-		consumer: NewConsumer[types.Mail](client, config.Hermes.Redis.Topic),
+		producer: NewProducer[types.Mail](*client, config.Hermes.Redis.Topic),
 		dlq:      dlqService,
 	}, nil
 }

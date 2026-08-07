@@ -62,7 +62,7 @@ func (c *DLQController) GetPending(r *http.Request) api.Response {
 		return api.Err(api.InternalServerErr, "Failed to get pending items: "+err.Error())
 	}
 
-	return api.Ok(map[string]interface{}{
+	return api.Ok(map[string]any{
 		"count": len(letters),
 		"items": letters,
 	})
@@ -89,7 +89,7 @@ func (c *DLQController) GetFailed(r *http.Request) api.Response {
 		return api.Err(api.InternalServerErr, "Failed to get failed items: "+err.Error())
 	}
 
-	return api.Ok(map[string]interface{}{
+	return api.Ok(map[string]any{
 		"count": len(letters),
 		"items": letters,
 	})

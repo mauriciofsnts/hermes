@@ -12,42 +12,46 @@ import (
 const WorkerPoolSize = 5
 
 type MemoryQueue[T any] struct {
-	email chan types.Mail
+	email chan T
 }
 
 func (m *MemoryQueue[T]) Read(ctx context.Context) {
-	slog.Debug("Starting memory queue workers", "worker_count", WorkerPoolSize)
+	slog.Debug("starting memory queue workers", "worker_count", WorkerPoolSize)
 
 	for i := 0; i < WorkerPoolSize; i++ {
 		go m.worker(ctx, i)
 	}
 
 	<-ctx.Done()
-	slog.Debug("Context done, stopping memory queue workers")
+	slog.Debug("context done, stopping memory queue workers")
 }
 
 func (m *MemoryQueue[T]) worker(ctx context.Context, workerID int) {
 	for {
 		select {
 		case <-ctx.Done():
-			slog.Debug("Worker stopping", "worker_id", workerID)
+			slog.Debug("worker stopping", "worker_id", workerID)
 			return
 		case email := <-m.email:
-			slog.Debug("Worker processing email", "worker_id", workerID, "to", email.To)
-			err := smtp.SendEmail(&email)
+			mail, ok := any(email).(types.Mail)
+			if !ok {
+				slog.Error("invalid item type in memory queue", "worker_id", workerID)
+				continue
+			}
 
-			if err != nil {
-				slog.Error("Error sending email", "worker_id", workerID, "to", email.To, "error", err)
+			slog.Debug("worker processing email", "worker_id", workerID, "to", mail.To)
+			if err := smtp.SendEmail(&mail); err != nil {
+				slog.Error("error sending email", "worker_id", workerID, "to", mail.To, "error", err)
 			} else {
-				slog.Info("Email sent successfully", "worker_id", workerID, "to", email.To)
+				slog.Info("email sent successfully", "worker_id", workerID, "to", mail.To)
 			}
 		}
 	}
 }
 
 func (m *MemoryQueue[T]) Write(email types.Mail) error {
-	slog.Debug("Writing email to memory queue", "to", email.To)
-	m.email <- email
+	slog.Debug("writing email to memory queue", "to", email.To)
+	m.email <- any(email).(T)
 	return nil
 }
 

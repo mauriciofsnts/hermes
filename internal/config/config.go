@@ -5,7 +5,7 @@ import "log/slog"
 type Config struct {
 	SMTP  SMTPConfig
 	PG    *PGConfig
-	Http  *HTTPConfig
+	HTTP  *HTTPConfig
 	Log   *LogConfig
 	Redis *RedisConfig
 

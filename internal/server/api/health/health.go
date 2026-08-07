@@ -54,7 +54,6 @@ func (c *HealthController) GetHealth(r *http.Request) api.Response {
 
 	if statusChecker.Status == healthCheck.StatusUp {
 		return api.Ok(statusChecker)
-	} else {
-		return api.DetailedError(api.InternalServerErr, statusChecker)
 	}
+	return api.DetailedError(api.InternalServerErr, statusChecker)
 }

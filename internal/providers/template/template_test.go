@@ -20,7 +20,7 @@ func TestTemplateServiceCaching(t *testing.T) {
 
 	// Primeira renderização (deve ser carregada do disco)
 	data := map[string]any{"Name": "World"}
-	result1, err := service.ParseHtmlTemplate(templateName, data)
+	result1, err := service.ParseHTMLTemplate(templateName, data)
 	if err != nil {
 		t.Fatalf("Failed to parse template first time: %v", err)
 	}
@@ -31,7 +31,7 @@ func TestTemplateServiceCaching(t *testing.T) {
 	}
 
 	// Segunda renderização (deve usar cache)
-	result2, err := service.ParseHtmlTemplate(templateName, data)
+	result2, err := service.ParseHTMLTemplate(templateName, data)
 	if err != nil {
 		t.Fatalf("Failed to parse template second time: %v", err)
 	}
@@ -67,7 +67,7 @@ func TestTemplateCacheInvalidation(t *testing.T) {
 
 	// Renderizar para cachear
 	data := map[string]any{"Name": "Test"}
-	service.ParseHtmlTemplate(templateName, data)
+	_, _ = service.ParseHTMLTemplate(templateName, data)
 
 	if len(service.cache) != 1 {
 		t.Errorf("Expected 1 item in cache after first parse, got %d", len(service.cache))

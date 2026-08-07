@@ -31,39 +31,28 @@ func (e *EmailController) Route(r api.Router) {
 	r.Post("/notification", e.Notify)
 }
 
-func (e *EmailController) ValidateEmailNotification(templateId string, data map[string]any, subject string) (*types.Mail, error) {
-	found := e.Provider.Exists(templateId)
-
-	if !found {
+func (e *EmailController) ValidateEmailNotification(templateID string, data map[string]any, subject string) (*types.Mail, error) {
+	if !e.Provider.Exists(templateID) {
 		return nil, errors.New("template not found")
 	}
 
-	// Carregar template para validação
-	templateContent, err := e.Provider.(*template.TemplateService).Get(templateId)
+	templateContent, err := e.Provider.Get(templateID)
 	if err != nil {
 		return nil, errors.New("error loading template")
 	}
 
-	// Validar estrutura do template contra os dados fornecidos
 	if err := template.ValidateTemplateStructure(templateContent, data); err != nil {
 		return nil, err
 	}
 
-	// Renderizar template com validação de campos
-	renderedTemplate, err := e.Provider.ParseHtmlTemplate(templateId, data)
-
+	renderedTemplate, err := e.Provider.ParseHTMLTemplate(templateID, data)
 	if err != nil {
 		return nil, errors.New("error parsing template: " + err.Error())
 	}
 
-	if data["to"] == nil {
-		return nil, errors.New("[to] field is required")
-	}
-
 	to, ok := data["to"].(string)
-
 	if !ok {
-		return nil, errors.New("recipient email is not a string")
+		return nil, errors.New("[to] field is required and must be a string")
 	}
 
 	notification := &types.Mail{
@@ -76,7 +65,7 @@ func (e *EmailController) ValidateEmailNotification(templateId string, data map[
 	return notification, nil
 }
 
-func (e *EmailController) ValidateDiscordNotification(apiKey string, data map[string]any, subject string) error {
+func (e *EmailController) SendDiscordNotification(apiKey string, data map[string]any, subject string) error {
 	client, err := discord.Connect(apiKey)
 
 	if err != nil {

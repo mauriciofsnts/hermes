@@ -5,19 +5,16 @@ import (
 	"strings"
 )
 
-// ValidateTemplateStructure valida se os dados possuem as chaves necessárias para o template
-func ValidateTemplateStructure(templateContent []byte, requiredData map[string]any) error {
-	// Extrair variáveis do template usando regex
-	// Procura por padrões como {{.FieldName}}
-	re := regexp.MustCompile(`\{\{\.(\w+)}}`)
-	matches := re.FindAllStringSubmatch(string(templateContent), -1)
+var templateVarRegex = regexp.MustCompile(`\{\{\.(\w+)}}`)
 
-	// Verificar se todas as variáveis necessárias estão presentes
+// ValidateTemplateStructure validates that the provided data contains the variables required by the template.
+func ValidateTemplateStructure(templateContent []byte, requiredData map[string]any) error {
+	matches := templateVarRegex.FindAllStringSubmatch(string(templateContent), -1)
+
 	for _, match := range matches {
 		fieldName := match[1]
 
-		// Ignorar campos padrão
-		if fieldName == "range" || fieldName == "if" || fieldName == "else" {
+		if isControlField(fieldName) {
 			continue
 		}
 
@@ -29,22 +26,19 @@ func ValidateTemplateStructure(templateContent []byte, requiredData map[string]a
 	return nil
 }
 
-// ExtractTemplateVariables extrai todas as variáveis de um template
+// ExtractTemplateVariables extracts all variables from a template.
 func ExtractTemplateVariables(templateContent []byte) []string {
-	re := regexp.MustCompile(`\{\{\.(\w+)}}`)
-	matches := re.FindAllStringSubmatch(string(templateContent), -1)
+	matches := templateVarRegex.FindAllStringSubmatch(string(templateContent), -1)
 
-	// Usar map para evitar duplicatas
 	vars := make(map[string]bool)
 	for _, match := range matches {
 		fieldName := match[1]
-		// Ignorar campos padrão
-		if !strings.HasPrefix(fieldName, "range") && !strings.HasPrefix(fieldName, "if") {
-			vars[fieldName] = true
+		if isControlField(fieldName) {
+			continue
 		}
+		vars[fieldName] = true
 	}
 
-	// Converter map para slice
 	result := make([]string, 0, len(vars))
 	for v := range vars {
 		result = append(result, v)
@@ -53,7 +47,12 @@ func ExtractTemplateVariables(templateContent []byte) []string {
 	return result
 }
 
-// TemplateMissingFieldError representa um erro de campo faltante
+func isControlField(fieldName string) bool {
+	return fieldName == "range" || fieldName == "if" || fieldName == "else" ||
+		strings.HasPrefix(fieldName, "range") || strings.HasPrefix(fieldName, "if")
+}
+
+// TemplateMissingFieldError represents a missing template field error.
 type TemplateMissingFieldError struct {
 	FieldName string
 }

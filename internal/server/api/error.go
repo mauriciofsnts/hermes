@@ -12,10 +12,9 @@ var (
 	InternalServerErr = ErrorType{"INTERNAL_SERVER_ERROR", http.StatusInternalServerError}
 	ForbiddenErr      = ErrorType{"FORBIDDEN", http.StatusForbidden}
 	BadRequestErr     = ErrorType{"BAD_REQUEST", http.StatusBadRequest}
-	ConflitErr        = ErrorType{"CONFLICT", http.StatusConflict}
+	ConflictErr       = ErrorType{"CONFLICT", http.StatusConflict}
 	UnauthorizedErr   = ErrorType{"UNAUTHORIZED", http.StatusUnauthorized}
 	ValidationErr     = ErrorType{"VALIDATION_ERROR", http.StatusUnprocessableEntity}
-	TooFastErr        = ErrorType{"TOO_FAST", http.StatusTooManyRequests}
 	TooManyReqErr     = ErrorType{"TOO_MANY_REQUESTS", http.StatusTooManyRequests}
 )
 

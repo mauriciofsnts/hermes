@@ -42,24 +42,20 @@ func Start(cfg *config.Config) {
 	queueManager := q.NewQueueManager(queue)
 	go onShutdown(queueManager)
 
-	providers := &providers.Providers{
-		// DB:      database.SetupConnection(),
+	prov := &providers.Providers{
 		Queue:   queue,
 		Storage: template.NewTemplateService(),
 	}
 
-	server.StartServer(providers)
-
-	if err != nil {
-		slog.Error("Failed to start HTTP server: " + err.Error())
-		os.Exit(0)
+	if err := server.StartServer(prov); err != nil {
+		slog.Error("failed to start HTTP server", "error", err)
+		os.Exit(1)
 	}
 }
 
 func onShutdown(queueManager *q.QueueManager) {
 	stop := make(chan os.Signal, 1)
 
-	//lint:ignore SA1016 i dont know, it just works lol
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	<-stop
 

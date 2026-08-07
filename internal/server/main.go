@@ -30,7 +30,7 @@ func StartServer(providers *providers.Providers) error {
 	r.Use(middleware.MetricsMiddleware)
 
 	options := cors.Options{
-		AllowedOrigins: config.Hermes.Http.AllowedOrigins,
+		AllowedOrigins: config.Hermes.HTTP.AllowedOrigins,
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders: []string{"*"},
 		MaxAge:         300,
@@ -46,8 +46,8 @@ func StartServer(providers *providers.Providers) error {
 
 	router.RouteApp(r, providers)
 
-	bindAddr := fmt.Sprintf(":%d", config.Hermes.Http.Port)
-	slog.Info("Starting server on %s", bindAddr, nil)
+	bindAddr := fmt.Sprintf(":%d", config.Hermes.HTTP.Port)
+	slog.Info("starting server", "addr", bindAddr)
 
 	server := &http.Server{
 		Addr:         bindAddr,

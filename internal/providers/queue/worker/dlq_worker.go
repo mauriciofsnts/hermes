@@ -87,7 +87,9 @@ func (w *DLQWorker) processItem(letter database.DeadLetter) {
 	var email types.Mail
 	if err := json.Unmarshal([]byte(letter.EmailData), &email); err != nil {
 		slog.Error("Failed to deserialize email from DLQ", "id", letter.ID, "error", err)
-		w.dlq.RecordAttempt(letter.ID, false, "deserialization error: "+err.Error())
+		if recErr := w.dlq.RecordAttempt(letter.ID, false, "deserialization error: "+err.Error()); recErr != nil {
+			slog.Error("failed to record DLQ attempt", "id", letter.ID, "error", recErr)
+		}
 		return
 	}
 
@@ -105,9 +107,13 @@ func (w *DLQWorker) processItem(letter database.DeadLetter) {
 			"attempt", letter.AttemptCount+1,
 			"error", err,
 		)
-		w.dlq.RecordAttempt(letter.ID, false, err.Error())
+		if recErr := w.dlq.RecordAttempt(letter.ID, false, err.Error()); recErr != nil {
+			slog.Error("failed to record DLQ attempt", "id", letter.ID, "error", recErr)
+		}
 	} else {
 		slog.Info("DLQ retry succeeded", "id", letter.ID)
-		w.dlq.RecordAttempt(letter.ID, true, "")
+		if recErr := w.dlq.RecordAttempt(letter.ID, true, ""); recErr != nil {
+			slog.Error("failed to record DLQ attempt", "id", letter.ID, "error", recErr)
+		}
 	}
 }

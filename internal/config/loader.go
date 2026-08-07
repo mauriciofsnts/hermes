@@ -84,7 +84,7 @@ func applyEnvOverrides(cfg *Config) {
 	// HTTP Configuration
 	if port := os.Getenv("HTTP_PORT"); port != "" {
 		if p, err := strconv.Atoi(port); err == nil {
-			cfg.Http.Port = p
+			cfg.HTTP.Port = p
 		}
 	}
 
@@ -112,8 +112,8 @@ func ensureNotNil(cfg *Config) {
 	if cfg.Log == nil {
 		cfg.Log = &LogConfig{}
 	}
-	if cfg.Http == nil {
-		cfg.Http = &HTTPConfig{}
+	if cfg.HTTP == nil {
+		cfg.HTTP = &HTTPConfig{}
 	}
 	if cfg.Apps == nil {
 		cfg.Apps = make(map[string]*AppConfig)

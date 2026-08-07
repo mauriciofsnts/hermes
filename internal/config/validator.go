@@ -17,7 +17,7 @@ func ValidateConfig(cfg *Config) error {
 	}
 
 	// Validar HTTP
-	if err := validateHTTP(cfg.Http); err != nil {
+	if err := validateHTTP(cfg.HTTP); err != nil {
 		return fmt.Errorf("invalid HTTP config: %w", err)
 	}
 
@@ -91,11 +91,11 @@ func validateHTTP(http *HTTPConfig) error {
 
 func validateRedis(redis *RedisConfig) error {
 	if redis.Address == "" {
-		return errors.New("Redis address is required when configured")
+		return errors.New("redis address is required when configured")
 	}
 
 	if redis.Topic == "" {
-		return errors.New("Redis topic is required when configured")
+		return errors.New("redis topic is required when configured")
 	}
 
 	return nil

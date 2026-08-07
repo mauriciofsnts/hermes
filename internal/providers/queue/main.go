@@ -13,7 +13,6 @@ import (
 )
 
 // QueueManager manages the lifecycle of a notification queue worker.
-// It encapsulates the context and cancel function to avoid global mutable state.
 type QueueManager struct {
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -21,17 +20,16 @@ type QueueManager struct {
 }
 
 func NewQueue(cfg *config.Config) (worker.Queue[types.Mail], error) {
-	if cfg.Redis != nil {
+	if cfg.Redis != nil && cfg.Redis.Address != "" {
 		redisQueue, err := redis.NewRedisProvider()
-
 		if err == nil {
 			return redisQueue, nil
 		}
+		slog.Warn("failed to create redis queue, falling back to memory queue", "error", err)
 	}
 
-	slog.Warn("Using memory queue, because no queue provider was found")
-	memoryQueue := memory.NewMemoryProvider()
-	return memoryQueue, nil
+	slog.Warn("using memory queue because no redis provider was configured")
+	return memory.NewMemoryProvider(), nil
 }
 
 // NewQueueManager creates a new QueueManager instance and starts the worker.
@@ -56,36 +54,26 @@ func (qm *QueueManager) Stop() {
 }
 
 // DrainAndStop gracefully drains remaining items and stops the queue worker.
-// It waits for up to the specified timeout for pending items to be processed.
-// This ensures no emails are lost during shutdown.
 func (qm *QueueManager) DrainAndStop(timeout time.Duration) {
-	slog.Info("Draining queue before shutdown", "timeout", timeout)
+	slog.Info("draining queue before shutdown", "timeout", timeout)
 
-	// Create a timeout context for draining
 	drainCtx, drainCancel := context.WithTimeout(context.Background(), timeout)
 	defer drainCancel()
 
-	// Signal the worker to stop accepting new items
 	if qm.cancel != nil {
 		qm.cancel()
 	}
 
-	// Wait for either:
-	// 1. All pending items to be processed
-	// 2. Timeout to expire
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-drainCtx.Done():
-			slog.Warn("Drain timeout reached, forcing shutdown")
+			slog.Warn("drain timeout reached, forcing shutdown")
 			return
 		case <-ticker.C:
-			// Check if queue is empty (implementation depends on queue type)
-			// For now, we just wait for the timeout
-			// In a real implementation, we'd check queue depth here
-			slog.Debug("Waiting for queue to drain...")
+			slog.Debug("waiting for queue to drain...")
 		}
 	}
 }

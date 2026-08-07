@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -105,22 +106,22 @@ func RateLimitMiddleware(limiter *RateLimiter) func(http.Handler) http.Handler {
 	}
 }
 
-// getClientIP extrai o IP do cliente da requisição
+// getClientIP extracts the client IP from the request.
 func getClientIP(r *http.Request) string {
-	// Verificar X-Forwarded-For (quando atrás de proxy)
+	// X-Forwarded-For can contain multiple IPs separated by commas.
 	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		if ip, _, err := net.SplitHostPort(xff); err == nil {
+		// Use the leftmost (client) IP.
+		first := strings.TrimSpace(strings.Split(xff, ",")[0])
+		if ip, _, err := net.SplitHostPort(first); err == nil {
 			return ip
 		}
-		return xff
+		return first
 	}
 
-	// Verificar X-Real-IP
 	if xri := r.Header.Get("X-Real-IP"); xri != "" {
 		return xri
 	}
 
-	// RemoteAddr
 	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
 	return ip
 }

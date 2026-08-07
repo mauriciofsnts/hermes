@@ -15,7 +15,7 @@ func LoggerMiddleware(next http.Handler) http.Handler {
 
 		id := r.Context().Value(middleware.RequestIDKey)
 		slog.Info(
-			"Http request",
+			"http request",
 			"id", id,
 			"remote_addr", r.RemoteAddr,
 			"method", r.Method,
@@ -26,7 +26,7 @@ func LoggerMiddleware(next http.Handler) http.Handler {
 		status := ww.Status()
 
 		slog.Info(
-			"Http response",
+			"http response",
 			"id", id,
 			"status", status,
 			"took", time.Since(start),

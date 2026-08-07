@@ -3,6 +3,7 @@ package template
 import (
 	"bytes"
 	"os"
+	"strings"
 	"sync"
 
 	tmpl "html/template"
@@ -13,7 +14,7 @@ type TemplateProvider interface {
 	Get(name string) ([]byte, error)
 	Delete(name string) error
 	Create(name string, content []byte) error
-	ParseHtmlTemplate(name string, content map[string]interface{}) (*bytes.Buffer, error)
+	ParseHTMLTemplate(name string, content map[string]any) (*bytes.Buffer, error)
 	ClearCache() error
 }
 
@@ -42,6 +43,10 @@ func (t *TemplateService) Delete(name string) error {
 }
 
 func (t *TemplateService) Create(name string, content []byte) error {
+	if err := os.MkdirAll("templates", 0750); err != nil {
+		return err
+	}
+
 	if err := os.WriteFile(getPath(name), content, 0600); err != nil {
 		return err
 	}
@@ -52,7 +57,7 @@ func (t *TemplateService) Create(name string, content []byte) error {
 	return nil
 }
 
-func (t *TemplateService) ParseHtmlTemplate(name string, content map[string]any) (*bytes.Buffer, error) {
+func (t *TemplateService) ParseHTMLTemplate(name string, content map[string]any) (*bytes.Buffer, error) {
 	// Verificar cache primeiro
 	t.mu.RLock()
 	cachedTmpl, exists := t.cache[name]
@@ -100,5 +105,8 @@ func (t *TemplateService) ClearCache() error {
 }
 
 func getPath(name string) string {
-	return "templates/" + name + ".html"
+	if !strings.HasSuffix(name, ".html") {
+		name += ".html"
+	}
+	return "templates/" + name
 }

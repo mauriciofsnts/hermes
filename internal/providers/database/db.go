@@ -5,43 +5,46 @@ import (
 	"log/slog"
 	"strconv"
 
-	"github.com/joho/godotenv"
 	"github.com/mauriciofsnts/hermes/internal/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func SetupConnection() *gorm.DB {
-	err := godotenv.Load()
-
-	if err != nil {
-		panic("Failed to load env file")
+// SetupConnection opens a connection to the configured PostgreSQL database.
+func SetupConnection() (*gorm.DB, error) {
+	cfg := config.Hermes.PG
+	if cfg == nil {
+		return nil, fmt.Errorf("database configuration is missing")
 	}
 
-	host := config.Hermes.PG.Host
-	port := config.Hermes.PG.Port
-	user := config.Hermes.PG.User
-	dbname := config.Hermes.PG.DBName
-	password := config.Hermes.PG.Password
-
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", host, user, password, dbname, strconv.Itoa(port))
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+		cfg.Host, cfg.User, cfg.Password, cfg.DBName, strconv.Itoa(cfg.Port),
+	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-
 	if err != nil {
-		slog.Error("Failed to connect to database", "error", err)
-		panic("Failed to connect to database")
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	return db
+	return db, nil
 }
 
-func CloseConnection(db *gorm.DB) {
-	dbSQL, err := db.DB()
-
-	if err != nil {
-		panic("Failed to close connection")
+// CloseConnection closes the underlying database connection.
+func CloseConnection(db *gorm.DB) error {
+	if db == nil {
+		return nil
 	}
 
-	dbSQL.Close()
+	dbSQL, err := db.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get underlying database connection: %w", err)
+	}
+
+	if err := dbSQL.Close(); err != nil {
+		slog.Error("failed to close database connection", "error", err)
+		return fmt.Errorf("failed to close database connection: %w", err)
+	}
+
+	return nil
 }

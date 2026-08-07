@@ -35,20 +35,23 @@ func (c *ChiRouter) wrap(handler api.WrappedHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		res := handler(r)
 
-		for k, v := range res.Header {
-			w.Header().Set(k, v[0])
+		if res.StatusCode == 0 {
+			slog.Error("missing response status code", "path", r.URL.Path)
+			res = api.Err(api.InternalServerErr, "missing response status code")
 		}
 
-		if res.StatusCode == 0 {
-			slog.Error("Missing response status code", "path", r.URL.Path)
-			res.StatusCode = http.StatusInternalServerError
-			return
+		for k, values := range res.Header {
+			for _, v := range values {
+				w.Header().Add(k, v)
+			}
 		}
 
 		w.WriteHeader(res.StatusCode)
 
 		if res.Body != nil {
-			_ = json.NewEncoder(w).Encode(res.Body)
+			if err := json.NewEncoder(w).Encode(res.Body); err != nil {
+				slog.Error("failed to encode response body", "error", err)
+			}
 		}
 	}
 }

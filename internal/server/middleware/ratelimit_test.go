@@ -56,7 +56,7 @@ func TestRateLimitMiddleware(t *testing.T) {
 	limiter := NewRateLimiter(2)
 	handler := RateLimitMiddleware(limiter)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
+		_, _ = w.Write([]byte("OK"))
 	}))
 
 	// Primeira requisição

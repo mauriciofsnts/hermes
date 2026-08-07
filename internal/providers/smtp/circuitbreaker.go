@@ -3,6 +3,7 @@ package smtp
 import (
 	"fmt"
 	"math"
+	"sync"
 	"time"
 )
 
@@ -15,6 +16,7 @@ const (
 )
 
 type CircuitBreaker struct {
+	mu               sync.RWMutex
 	state            CircuitBreakerState
 	failureCount     int
 	failureThreshold int
@@ -34,11 +36,13 @@ func NewCircuitBreaker(failureThreshold int, successThreshold int, timeout time.
 }
 
 func (cb *CircuitBreaker) CanExecute() bool {
+	cb.mu.Lock()
+	defer cb.mu.Unlock()
+
 	switch cb.state {
 	case StateClosed:
 		return true
 	case StateOpen:
-		// Se passou o timeout, tentar half-open
 		if time.Since(cb.lastFailureTime) > cb.timeout {
 			cb.state = StateHalfOpen
 			cb.successCount = 0
@@ -52,6 +56,9 @@ func (cb *CircuitBreaker) CanExecute() bool {
 }
 
 func (cb *CircuitBreaker) RecordSuccess() {
+	cb.mu.Lock()
+	defer cb.mu.Unlock()
+
 	switch cb.state {
 	case StateClosed:
 		cb.failureCount = 0
@@ -65,6 +72,9 @@ func (cb *CircuitBreaker) RecordSuccess() {
 }
 
 func (cb *CircuitBreaker) RecordFailure() {
+	cb.mu.Lock()
+	defer cb.mu.Unlock()
+
 	cb.lastFailureTime = time.Now()
 	switch cb.state {
 	case StateClosed:
@@ -78,6 +88,9 @@ func (cb *CircuitBreaker) RecordFailure() {
 }
 
 func (cb *CircuitBreaker) GetState() string {
+	cb.mu.RLock()
+	defer cb.mu.RUnlock()
+
 	switch cb.state {
 	case StateClosed:
 		return "closed"
@@ -89,7 +102,7 @@ func (cb *CircuitBreaker) GetState() string {
 	return "unknown"
 }
 
-// RetryConfig configuração para retry com backoff exponencial
+// RetryConfig configures retry behavior with exponential backoff.
 type RetryConfig struct {
 	MaxAttempts       int
 	InitialDelay      time.Duration
@@ -97,7 +110,7 @@ type RetryConfig struct {
 	BackoffMultiplier float64
 }
 
-// DefaultRetryConfig retorna configuração padrão de retry
+// DefaultRetryConfig returns the default retry configuration.
 func DefaultRetryConfig() RetryConfig {
 	return RetryConfig{
 		MaxAttempts:       3,
@@ -107,7 +120,7 @@ func DefaultRetryConfig() RetryConfig {
 	}
 }
 
-// ExecuteWithRetry executa uma função com retry e backoff exponencial
+// ExecuteWithRetry executes a function with retry and exponential backoff.
 func ExecuteWithRetry(fn func() error, config RetryConfig) error {
 	var lastErr error
 	delay := config.InitialDelay
@@ -120,15 +133,12 @@ func ExecuteWithRetry(fn func() error, config RetryConfig) error {
 
 		lastErr = err
 
-		// Se for a última tentativa, retornar erro
 		if attempt == config.MaxAttempts-1 {
 			break
 		}
 
-		// Aguardar antes de tentar novamente
 		time.Sleep(delay)
 
-		// Calcular próximo delay com backoff exponencial
 		nextDelay := time.Duration(float64(delay) * config.BackoffMultiplier)
 		if nextDelay > config.MaxDelay {
 			nextDelay = config.MaxDelay
@@ -139,7 +149,7 @@ func ExecuteWithRetry(fn func() error, config RetryConfig) error {
 	return fmt.Errorf("after %d attempts: %w", config.MaxAttempts, lastErr)
 }
 
-// CalculateBackoffDuration calcula o delay baseado no número de tentativas
+// CalculateBackoffDuration calculates the delay based on the attempt number.
 func CalculateBackoffDuration(attempt int, initialDelay time.Duration, multiplier float64, maxDelay time.Duration) time.Duration {
 	delay := time.Duration(float64(initialDelay) * math.Pow(multiplier, float64(attempt)))
 	if delay > maxDelay {

@@ -61,11 +61,11 @@ func (sp *SMTPProvider) Ping() error {
 	addr := getAddr()
 
 	client, err := smtp.Dial(addr)
-
 	if err != nil {
 		slog.Error("failed to connect to smtp server", "error", err)
 		return fmt.Errorf("failed to connect to smtp server: %w", err)
 	}
+	defer client.Close()
 
 	if err := client.Noop(); err != nil {
 		slog.Error("failed to ping smtp server", "error", err)

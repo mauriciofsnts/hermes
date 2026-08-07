@@ -30,14 +30,20 @@ func init() {
 
 func Validate[T any](v T) []*ValidationError {
 	rawErrs := validate.Struct(v)
-
 	if rawErrs == nil {
 		return nil
 	}
 
-	validationErrs := make([]*ValidationError, len(rawErrs.(validator.ValidationErrors)))
+	validationErrors, ok := rawErrs.(validator.ValidationErrors)
+	if !ok {
+		return []*ValidationError{{
+			Field: "",
+			Error: rawErrs.Error(),
+		}}
+	}
 
-	for i, err := range rawErrs.(validator.ValidationErrors) {
+	validationErrs := make([]*ValidationError, len(validationErrors))
+	for i, err := range validationErrors {
 		fieldName := err.Field()
 
 		var errorMessage string

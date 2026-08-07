@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/redis/go-redis/v9"
@@ -9,6 +10,7 @@ import (
 type Consumer[T any] struct {
 	Client *redis.Client
 	Topic  string
+	pubsub *redis.PubSub
 }
 
 type ReadData[T any] struct {
@@ -23,31 +25,48 @@ func NewConsumer[T any](client *redis.Client, topic string) *Consumer[T] {
 	}
 }
 
-func (c *Consumer[T]) Read(ch chan<- ReadData[T]) {
-	pubsub := c.Client.Subscribe(ctx, c.Topic)
+func (c *Consumer[T]) Read(ctx context.Context, ch chan<- ReadData[T]) {
+	c.pubsub = c.Client.Subscribe(ctx, c.Topic)
+	defer c.pubsub.Close()
 
 	for {
-		msg, err := pubsub.ReceiveMessage(ctx)
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
 
+		msg, err := c.pubsub.ReceiveMessage(ctx)
 		if err != nil {
-			ch <- ReadData[T]{Data: nil, Err: err}
+			select {
+			case <-ctx.Done():
+				return
+			case ch <- ReadData[T]{Data: nil, Err: err}:
+			}
 			continue
 		}
 
 		var model T
-
-		err = json.Unmarshal([]byte(msg.Payload), &model)
-
-		if err != nil {
-			ch <- ReadData[T]{Data: nil, Err: err}
+		if err := json.Unmarshal([]byte(msg.Payload), &model); err != nil {
+			select {
+			case <-ctx.Done():
+				return
+			case ch <- ReadData[T]{Data: nil, Err: err}:
+			}
 			continue
 		}
 
-		ch <- ReadData[T]{Data: &model, Err: nil}
+		select {
+		case <-ctx.Done():
+			return
+		case ch <- ReadData[T]{Data: &model, Err: nil}:
+		}
 	}
-
 }
 
 func (c *Consumer[T]) Close() error {
-	return c.Client.Close()
+	if c.pubsub != nil {
+		return c.pubsub.Close()
+	}
+	return nil
 }

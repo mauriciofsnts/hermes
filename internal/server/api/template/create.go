@@ -27,7 +27,7 @@ func (t *TemplateController) CreateTemplate(r *http.Request) api.Response {
 	}
 
 	if t.provider.Exists(body.Name) {
-		return api.Err(api.BadRequestErr, "An template with this name already exists")
+		return api.Err(api.BadRequestErr, "A template with this name already exists")
 	}
 
 	err = t.provider.Create(body.Name, []byte(parsedContent))

@@ -59,7 +59,7 @@ func (dlq *DLQService) Store(emailData string, errorMsg string, appID string) er
 
 // RecordAttempt updates the attempt count for a dead letter.
 func (dlq *DLQService) RecordAttempt(id uint, success bool, errorMsg string) error {
-	updates := map[string]interface{}{
+	updates := map[string]any{
 		"attempt_count": gorm.Expr("attempt_count + 1"),
 		"last_attempt":  time.Now(),
 	}
@@ -144,7 +144,9 @@ func (dlq *DLQService) GetStats() (map[string]int64, error) {
 
 	// Total count
 	var total int64
-	dlq.db.Model(&DeadLetter{}).Count(&total)
+	if err := dlq.db.Model(&DeadLetter{}).Count(&total).Error; err != nil {
+		return nil, err
+	}
 	stats["total"] = total
 
 	return stats, nil

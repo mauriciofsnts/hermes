@@ -12,7 +12,7 @@ func TestValidateConfigSuccess(t *testing.T) {
 			Username: "user@example.com",
 			Password: "password",
 		},
-		Http: &HTTPConfig{
+		HTTP: &HTTPConfig{
 			Port: 8080,
 		},
 		Apps: map[string]*AppConfig{
@@ -43,7 +43,7 @@ func TestValidateConfigMissingSMTPHost(t *testing.T) {
 			Username: "user",
 			Password: "pass",
 		},
-		Http: &HTTPConfig{Port: 8080},
+		HTTP: &HTTPConfig{Port: 8080},
 	}
 
 	err := ValidateConfig(cfg)
@@ -60,7 +60,7 @@ func TestValidateConfigInvalidPort(t *testing.T) {
 			Username: "user",
 			Password: "pass",
 		},
-		Http: &HTTPConfig{Port: 8080},
+		HTTP: &HTTPConfig{Port: 8080},
 	}
 
 	err := ValidateConfig(cfg)
@@ -77,7 +77,7 @@ func TestValidateConfigNoApps(t *testing.T) {
 			Username: "user",
 			Password: "pass",
 		},
-		Http: &HTTPConfig{Port: 8080},
+		HTTP: &HTTPConfig{Port: 8080},
 		Apps: map[string]*AppConfig{},
 	}
 
