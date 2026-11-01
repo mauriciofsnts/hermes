@@ -4,7 +4,7 @@ go 1.25
 
 require (
 	github.com/alexliesenfeld/health v0.8.0
-	github.com/disgoorg/snowflake/v2 v2.0.1
+	github.com/disgoorg/snowflake/v2 v2.0.3
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-chi/chi/v5 v5.0.12
 	github.com/go-chi/cors v1.2.1
