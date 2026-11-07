@@ -33,7 +33,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
 # ========================================
 # Stage 2: Runtime
 # ========================================
-FROM alpine:3.19
+FROM alpine:3.24
 
 # Install runtime dependencies
 RUN apk add --no-cache \
